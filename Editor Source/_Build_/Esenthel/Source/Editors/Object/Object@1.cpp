@@ -118,6 +118,34 @@ ObjView ObjEdit;
       "  ", // move
    };
 /******************************************************************************/
+   void SlotMesh::set(C MeshPtr &mesh, C Str &name) {T.mesh=mesh; T.name=name;}
+   void SlotMesh::draw(C Skeleton &skel)
+   {
+      if(mesh)if(C SkelSlot *slot=skel.findSlot(name))
+      {
+         Matrix m=*slot; m.scaleOrn(scale); mesh->draw(m);
+      }
+   }
+   void SlotMesh::draw(C AnimSkel &skel)
+   {
+      if(mesh)if(C OrientM *slot=skel.findSlot(name))
+      {
+         Matrix m=*slot; m.scaleOrn(scale); mesh->draw(m);
+      }
+   }
+   void SlotMesh::Set(MemPtr<SlotMesh> slot_meshes, cchar8 *name, C MeshPtr &mesh)
+   {
+      SlotMesh *sm=null; REPA(slot_meshes)if(slot_meshes[i].name==name)
+      {
+         if(!mesh){slot_meshes.remove(i); return;}
+         sm=&slot_meshes[i]; break;
+      }
+      if(mesh)
+      {
+         if(!sm)sm=&slot_meshes.New();
+         sm->set(mesh, name);
+      }
+   }
       void ObjView::BackMesh::draw()
       {
          if(mesh)mesh->draw(matrix);
@@ -125,14 +153,6 @@ ObjView ObjEdit;
       void ObjView::BackMesh::drawBlend()
       {
          if(mesh)mesh->drawBlend(matrix, &NoTemp(Vec4(1, 1, 1, ObjEdit.background_alpha())));
-      }
-      void ObjView::SlotMesh::set(C MeshPtr &mesh, C Str &name) {T.mesh=mesh; T.name=name;}
-      void ObjView::SlotMesh::draw(Skeleton &skel)
-      {
-         if(mesh)if(SkelSlot *slot=skel.findSlot(name))
-         {
-            Matrix m=*slot; m.scaleOrn(scale); mesh->draw(m);
-         }
       }
       void ObjView::Info::draw(C GuiPC &gpc){ObjEdit.drawInfo(gpc);}
       void ObjView::MeshChange::removeBone(C Str &name)
@@ -3094,20 +3114,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    }
    void ObjView::putMeshToSlot(C MeshPtr &mesh, int slot_index)
    {
-      if(mesh_skel && InRange(slot_index, mesh_skel->slots))
-      {
-         SkelSlot &slot=mesh_skel->slots[slot_index];
-         SlotMesh *sm=null; REPA(slot_meshes)if(slot_meshes[i].name==slot.name)
-         {
-            if(!mesh){slot_meshes.remove(i); return;}
-            sm=&slot_meshes[i]; break;
-         }
-         if(mesh)
-         {
-            if(!sm)sm=&slot_meshes.New();
-            sm->set(mesh, slot.name);
-         }
-      }
+      if(mesh_skel && InRange(slot_index, mesh_skel->slots))SlotMesh::Set(slot_meshes, mesh_skel->slots[slot_index].name, mesh);
    }
    void ObjView::DelRootBone(ObjView &editor) {editor.delRootBone();}
           void ObjView::delRootBone()
@@ -3897,9 +3904,9 @@ cur_skel_to_saved_skel.renameBone(old_name, new_name);
          }
       }
    }
-ObjView::BackMesh::BackMesh() : matrix(1) {}
+SlotMesh::SlotMesh() : scale(1) {}
 
-ObjView::SlotMesh::SlotMesh() : scale(1) {}
+ObjView::BackMesh::BackMesh() : matrix(1) {}
 
 ObjView::MeshChange::MeshChange() : sel_only(false), can_use_cur_skel_to_saved_skel(true) {}
 

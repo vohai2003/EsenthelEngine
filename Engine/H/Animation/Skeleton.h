@@ -323,6 +323,7 @@ struct  AnimatedSkeleton // Animated Skeleton - used for animating meshes
    Byte          findSlotB   (CChar8   *name                                  )C; // find slot   byte index    , 255  on fail
    AnimSkelBone* findBone    (CChar8   *name                                  ) ; // find bone                 , null on fail
    OrientM     * findSlot    (CChar8   *name                                  ) ; // find transformed slot     , null on fail, slot will have correct orientation after 'updateMatrix' has been called
+ C OrientM     * findSlot    (CChar8   *name                                  )C; // find transformed slot     , null on fail, slot will have correct orientation after 'updateMatrix' has been called
    SkelAnim*      getSkelAnim(C Str    &name                                  )C; // get  skeleton    animation, Exit on fail
    SkelAnim*      getSkelAnim(C UID    &id                                    )C; // get  skeleton    animation, Exit on fail
    Int            getBoneI   (CChar8   *name                                  )C; // get  bone        index    , Exit on fail

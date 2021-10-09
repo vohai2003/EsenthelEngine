@@ -283,17 +283,26 @@ AnimEditor AnimEdit;
             {
                if(AnimEdit.mesh)AnimEdit.mesh->draw(AnimEdit.anim_skel);
 
+               if(AnimEdit.preview.draw_slots)REPAO(AnimEdit.slot_meshes).draw(AnimEdit.anim_skel);
+
                LightDir(!(ActiveCam.matrix.z*2+ActiveCam.matrix.x-ActiveCam.matrix.y), 1-D.ambientColorL()).add(false);
             }break;
          }
+      }
+      void AnimEditor::Preview::setCam()
+      {
+       C MeshPtr &mesh=AnimEdit.mesh;
+         Box box(0); if(mesh){if(mesh->is())box=mesh->ext;else if(AnimEdit.skel)box=*AnimEdit.skel;}
+         flt dist=Max(0.1f, GetDist(box));
+         D.viewFrom(dist*0.01f).viewRange(dist*24);
+         SetCam(cam, box, cam_yaw, cam_pitch, cam_zoom);
       }
       void AnimEditor::Preview::Draw(Viewport &viewport) {AnimEdit.preview.draw();}
              void AnimEditor::Preview::draw()
       {
          AnimEdit.setAnimSkel();
-         if(C Skeleton *skel=AnimEdit.skel)
+         if(AnimEdit.skel)
          {
-          C MeshPtr          &mesh     =AnimEdit.mesh;
           C AnimatedSkeleton &anim_skel=AnimEdit.anim_skel;
 
             // remember settings
@@ -307,10 +316,7 @@ AnimEditor AnimEdit;
             Renderer.allow_temporal=false; // disable Temporal because previous bone matrixes are incorrect
 
             // render
-            Box box(0); if(mesh){if(mesh->is())box=mesh->ext;else if(skel)box=*skel;}
-            flt dist=Max(0.1f, GetDist(box));
-            D.viewFrom(dist*0.01f).viewRange(dist*24);
-            SetCam(cam, box, cam_yaw, cam_pitch, cam_zoom);
+            setCam();
             Renderer(Preview::Render);
 
             Renderer.setDepthForDebugDrawing();
@@ -322,7 +328,8 @@ AnimEditor AnimEdit;
             if(draw_bones || draw_slots)
             {
                D.depthLock(false);
-               anim_skel.draw(draw_bones ? ColorAlpha(CYAN, 0.75f) : TRANSPARENT, draw_slots ? ORANGE : TRANSPARENT);
+               anim_skel.draw(draw_bones ? ColorAlpha(CYAN, 0.75f) : TRANSPARENT/*, draw_slots ? ORANGE : TRANSPARENT*/);
+               if(draw_slots)FREPAO(anim_skel.slots).draw((sel_slot==i && lit_slot==i) ? LitSelColor : (sel_slot==i || lit_slot==i) ? SelColor : Color(255, 128, 0, 255), SkelSlotSize);
                D.depthUnlock();
             }
             D.lineSmooth(line_smooth);
@@ -390,6 +397,7 @@ AnimEditor AnimEdit;
       }
       void AnimEditor::Preview::update(C GuiPC &gpc)
 {
+         lit_slot=-1;
          flt old_time=AnimEdit.animTime();
          if(gpc.visible && visible())
          {
@@ -421,6 +429,19 @@ AnimEditor AnimEdit;
             REPA(Touches)if(Touches[i].guiObj()==&viewport && Touches[i].on()){cam_yaw-=Touches[i].ad().x*2.0f; cam_pitch+=Touches[i].ad().y*2.0f;}
 
             AnimEdit.playUpdate(time_speed);
+            
+            if(draw_slots && Gui.dragging())
+            {
+               viewport.setDisplayView();
+               setCam();
+               flt dist=0.03f;
+               REPA(AnimEdit.anim_skel.slots)
+               {
+                C OrientM &slot=AnimEdit.anim_skel.slots[i];
+                  flt d; if(Distance2D(Ms.pos(), Edge(slot.pos, slot.pos+slot.perp*SkelSlotSize), d, 0))
+                     if(d<dist){dist=d; lit_slot=i;}
+               }
+            }
          }
          super::update(gpc); // process after adjusting 'animTime' so clicking on anim track will not be changed afterwards
 
@@ -1693,6 +1714,8 @@ AnimEditor AnimEdit;
    {
       if(ElmAnim *anim_data=data())if(Elm *skel_elm=Proj.findElm(anim_data->skel_id))if(ElmSkel *skel_data=skel_elm->skelData())if(skel_data->mesh_id.valid()) // get mesh from anim->skel->mesh
       {
+         if(mesh_id==skel_data->mesh_id
+         && skel_id==skel_elm ->id)return;
          mesh_id=skel_data->mesh_id;
          skel_id=skel_elm ->id;
       #if 0 // load Game mesh (faster but uses "body skel")
@@ -1703,6 +1726,7 @@ AnimEditor AnimEdit;
          mesh=&  mesh_data; Load(mesh_data, Proj.editPath(mesh_id), Proj.game_path); RemovePartsAndLods(mesh_data); mesh_data.transform(skel_data->transform());
          mesh_data.skeleton(skel).setTanBin().setRender(false);
       #endif
+         slot_meshes.clear();
          setAnimSkel(true);
          return;
       }
@@ -1956,11 +1980,15 @@ AnimEditor AnimEdit;
    }
    void AnimEditor::drag(Memc<UID> &elms, GuiObj *obj, C Vec2 &screen_pos)
    {
-      if(contains(obj) || preview.contains(obj))
+      bool preview_contains=preview.contains(obj);
+      if(contains(obj) || preview_contains)
          REPA(elms)
             if(Elm *obj=Proj.findElm(elms[i], ELM_OBJ))
       {
-         setTarget(obj->id.asHex());
+         if(preview_contains && skel && InRange(preview.lit_slot, skel->slots))
+         {
+            SlotMesh::Set(slot_meshes, skel->slots[preview.lit_slot].name, Proj.gamePath(Proj.objToMesh(obj)));
+         }else setTarget(obj->id.asHex());
          elms.remove(i, true);
          break;
       }
@@ -1969,7 +1997,7 @@ AnimEditor::AnimEditor() : elm_id(UIDZero), mesh_id(UIDZero), skel_id(UIDZero), 
 
 AnimEditor::Track::Track() : event_lit(-1), event_sel(-1) {}
 
-AnimEditor::Preview::Preview() : draw_bones(false), draw_slots(false), draw_axis(false), draw_plane(false), time_speed(1), prop_max_x(0), cam_yaw(PI), cam_pitch(0), cam_zoom(1), length(null), event(null) {}
+AnimEditor::Preview::Preview() : draw_bones(false), draw_slots(false), draw_axis(false), draw_plane(false), lit_slot(-1), sel_slot(-1), time_speed(1), prop_max_x(0), cam_yaw(PI), cam_pitch(0), cam_zoom(1), length(null), event(null) {}
 
 AnimEditor::OptimizeAnim::OptimizeAnim() : refresh_needed(true), preview(true), angle_eps(EPS_ANIM_ANGLE), pos_eps(EPS_ANIM_POS), scale_eps(EPS_ANIM_SCALE), file_size(null), optimized_size(null) {}
 

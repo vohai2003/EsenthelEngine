@@ -66,6 +66,7 @@ public:
       Tabs         event_op;
       Track        track;
       bool         draw_bones, draw_slots, draw_axis, draw_plane;
+      int          lit_slot, sel_slot;
       flt          time_speed, prop_max_x,
                    cam_yaw, cam_pitch, cam_zoom;
       Camera       cam;
@@ -83,6 +84,7 @@ public:
       static void ApplySpeed(  Preview &editor          );
 
       static void Render();
+      void setCam();
       static void Draw(Viewport &viewport);
              void draw();
 
@@ -166,6 +168,7 @@ public:
    SkelAnim          skel_anim;
    Mesh              mesh_data;
    MeshPtr           mesh;
+   Memc<SlotMesh>    slot_meshes;
    Preview           preview;
    Track             track;
    Button            axis, draw_bones, draw_mesh, show_grid, undo, redo, locate, edit, force_play, start, end, prev_frame, next_frame,
