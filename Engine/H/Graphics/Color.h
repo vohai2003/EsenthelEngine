@@ -117,10 +117,12 @@ Int ColorDiffSum(C Color &x, C Color &y); // get difference between colors as a 
 Int ColorDiffMax(C Color &x, C Color &y); // get difference between colors as a max of all channel absolute differences
 Flt ColorDiffMax(C Vec   &x, C Vec   &y); // get difference between colors as a max of all channel absolute differences
 
-Color        Blend(C Color &base, C Color &color); // return 'color'            blended on top of 'base'
-Vec4         Blend(C Vec4  &base, C Vec4  &color); // return 'color'            blended on top of 'base'
-Vec4    MergeBlend(C Vec4  &base, C Vec4  &color); // return 'color'            blended on top of 'base' where 'color' RGB are already premultiplied by Alpha
-Vec4 AdditiveBlend(C Vec4  &base, C Vec4  &color); // return 'color' additively blended on top of 'base'
+Color         Blend(C Color &base, C Color &color); // return 'color'            blended on top of 'base'
+Vec4          Blend(C Vec4  &base, C Vec4  &color); // return 'color'            blended on top of 'base'
+Vec4      FastBlend(C Vec4  &base, C Vec4  &color); // return 'color'            blended on top of 'base'
+Vec4     MergeBlend(C Vec4  &base, C Vec4  &color); // return 'color'            blended on top of 'base' where 'color' RGB are already premultiplied by Alpha
+Vec4 FastMergeBlend(C Vec4  &base, C Vec4  &color); // return 'color'            blended on top of 'base' where 'color' RGB are already premultiplied by Alpha
+Vec4  AdditiveBlend(C Vec4  &base, C Vec4  &color); // return 'color' additively blended on top of 'base'
 
 Flt  SRGBToLinear(  Flt    s); // convert 0..1   srgb   to 0..1 linear
 Vec  SRGBToLinear(C Vec   &s); // convert 0..1   srgb   to 0..1 linear
