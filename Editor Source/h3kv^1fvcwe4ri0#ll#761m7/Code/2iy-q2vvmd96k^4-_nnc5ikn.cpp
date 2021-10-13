@@ -232,7 +232,7 @@ class AnimEditor : Viewport4Region
                ElmRect(r, AnimEdit.animTime()).draw(BLACK); // draw time position
                if(events)
                {
-                  TextStyleParams ts; ts.size=(AnimEdit.preview.event_op()>=0 ? 0.05 : 0.035); ts.align.set(0, 1); ts.color=ColorAlpha(0.6);
+                  TextStyleParams ts; ts.size=(AnimEdit.preview.event_op()>=0 ? 0.04 : 0.035); ts.align.set(0, 1); ts.color=ColorAlpha(0.6);
                   TextStyleParams ts_lit=ts; ts_lit.color=LitColor; ts_lit.size*=1.1;
                   flt  last_x=-FLT_MAX, y=r.max.y;
                   Vec2 pos; pos.y=y;

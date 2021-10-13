@@ -203,7 +203,7 @@ AnimEditor AnimEdit;
                ElmRect(r, AnimEdit.animTime()).draw(BLACK); // draw time position
                if(events)
                {
-                  TextStyleParams ts; ts.size=(AnimEdit.preview.event_op()>=0 ? 0.05f : 0.035f); ts.align.set(0, 1); ts.color=ColorAlpha(0.6f);
+                  TextStyleParams ts; ts.size=(AnimEdit.preview.event_op()>=0 ? 0.04f : 0.035f); ts.align.set(0, 1); ts.color=ColorAlpha(0.6f);
                   TextStyleParams ts_lit=ts; ts_lit.color=LitColor; ts_lit.size*=1.1f;
                   flt  last_x=-FLT_MAX, y=r.max.y;
                   Vec2 pos; pos.y=y;
