@@ -688,8 +688,8 @@ const int           ForceInstaller=-2, // -2=disable and don't update, -1=disabl
                     MeshSplitMinVtxs=12000, // min number of vertexes in a mesh to split it
                     MeshSplitMinSize=4;
 const uint          NewElmTime=1;
-const uint ProjectVersion     =86, // !! increase this by one if any of engine/editor asset formats have changed !!
-           ClientServerVersion=86;
+const uint ProjectVersion     =87, // !! increase this by one if any of engine/editor asset formats have changed !!
+           ClientServerVersion=87;
 const int           ServerNetworkCompressionLevel=9           , ClientNetworkCompressionLevel=9            , EsenthelProjectCompressionLevel=9;
 /******************************************************************************/
 // TYPEDEFS

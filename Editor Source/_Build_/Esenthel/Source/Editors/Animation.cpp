@@ -204,16 +204,21 @@ AnimEditor AnimEdit;
                if(events)
                {
                   TextStyleParams ts; ts.size=(AnimEdit.preview.event_op()>=0 ? 0.05f : 0.035f); ts.align.set(0, 1); ts.color=ColorAlpha(0.6f);
-                  FREPA(anim->events) // draw events
+                  TextStyleParams ts_lit=ts; ts_lit.color=LitColor; ts_lit.size*=1.1f;
+                  flt  last_x=-FLT_MAX, y=r.max.y;
+                  Vec2 pos; pos.y=y;
+                  FREPA(anim->events) // draw events, from start
                   {
                    C AnimEvent &event=anim->events[i];
                      Rect e=ElmRect(r, event.time);
-                     e.draw((event_lit==i) ? LitColor : LitSelColor); if((always_draw_events || AnimEdit.preview.event_op()>=0) && event_lit!=i)D.text(ts, e.up(), event.name);
-                  }
-                  if(InRange(event_lit, anim->events)) // draw highlighted event last to be on top of others
-                  {
-                   C AnimEvent &event=anim->events[event_lit];
-                     ts.resetColors(false); ts.size*=1.3f; D.text(ts, ElmRect(r, event.time).up(), event.name);
+                     e.draw((event_lit==i) ? LitColor : LitSelColor); if((always_draw_events || AnimEdit.preview.event_op()>=0))
+                     {
+                        pos.x=e.centerX();
+                        flt w=ts.textWidth(event.name)/2, l=pos.x-w, r=pos.x+w;
+                        if(l<=last_x)pos.y+=ts.size.y;else pos.y=y;
+                        MAX(last_x, r);
+                        D.text((event_lit==i) ? ts_lit : ts, pos, event.name);
+                     }
                   }
                }else
                {
@@ -1776,12 +1781,20 @@ AnimEditor AnimEdit;
          toGui();
       }
    }
+   void  AnimEditor::setEvent(  AnimEvent &e, int i)C {if(anim && InRange(i, anim->events))e=anim->events[i];}
+   int  AnimEditor::findEvent(C AnimEvent &e       )C {if(anim)REPA(anim->events)if(e==anim->events[i])return i; return -1;}
    void AnimEditor::moveEvent(int event, flt time)
    {
       if(anim && InRange(event, anim->events))
       {
          undos.set("eventMove");
          anim->events[event].time=time;
+         AnimEvent s, ps, l, pl;
+         setEvent(s, track.event_sel); setEvent(ps, preview.track.event_sel);
+         setEvent(l, track.event_lit); setEvent(pl, preview.track.event_lit);
+         anim->sortEvents();
+         track.event_sel=findEvent(s); preview.track.event_sel=findEvent(ps);
+         track.event_lit=findEvent(l); preview.track.event_lit=findEvent(pl);
          setChanged();
       }
    }
@@ -1801,9 +1814,10 @@ AnimEditor AnimEdit;
             if(Equal(event.name, name) && Abs(event.time-time)<=TimeEps())return;
          }
 
-         anim->events.New().set(name, time);
+         AnimEvent event=anim->events.New().set(name, time);
+         anim->sortEvents();
          setChanged();
-         if(edit_name)RenameEvent.activate(anim->events.elms()-1); // activate window for renaming created event
+         if(edit_name)RenameEvent.activate(findEvent(event)); // activate window for renaming created event
       }
    }
    void AnimEditor::delEvent(int index)
@@ -1823,6 +1837,7 @@ AnimEditor AnimEdit;
       {
          undos.set("event"); // keep the same as 'newEvent' because they're linked
          Set(anim->events[i].name, new_name);
+         anim->sortEvents();
          setChanged();
          break;
       }

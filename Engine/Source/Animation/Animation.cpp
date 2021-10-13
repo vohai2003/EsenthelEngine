@@ -1704,6 +1704,10 @@ void AnimBone::save(TextNode &node)C
 /******************************************************************************/
 // ANIMATION EVENT
 /******************************************************************************/
+Bool AnimEvent::operator==(C AnimEvent &event)C
+{
+   return time==event.time && Equal(name, event.name);
+}
 void AnimEvent::save(TextNode &node)C
 {
    node.set(name);
@@ -1746,6 +1750,7 @@ Int Animation::eventCount(CChar8 *name)C
    Int    num=0; REPA(events)if(Equal(events[i].name, name))num++;
    return num;
 }
+// FIXME: TODO: events are now sorted by 'time', functions can be optimized to make use of that
 Bool Animation::eventAfter(CChar8 *name, Flt time)C
 {
    REPA(events)
@@ -2961,6 +2966,12 @@ Animation& Animation::reverse()
    REPAO(bones).reverse(length());
    return setRootMatrix();
 }
+static Int Compare(C AnimEvent &a, C AnimEvent &b) {return Compare(a.time, b.time);}
+Animation& Animation::sortEvents()
+{
+   events.sort(Compare);
+   return T;
+}
 Animation& Animation::sortFrames()
 {
          keys  .sortFrames();
@@ -3518,7 +3529,7 @@ void Animation::freezeBone(C Skeleton &skel, Int skel_bone)
 /******************************************************************************/
 Bool Animation::save(File &f)C
 {
-   f.putMulti(UInt(CC4_ANIM), Byte(10), _flag, _length, _root_start, _root_end); // version
+   f.putMulti(UInt(CC4_ANIM), Byte(11), _flag, _length, _root_start, _root_end); // version
    if(keys.saveData(f))
    {
       f.cmpUIntV(bones.elms()); FREPA(bones){C AnimBone &abon=bones[i]; f.putStr(abon.name).putMulti(abon.type, abon.type_index, abon.type_sub); if(!abon.saveData(f))return false;}
@@ -3531,7 +3542,7 @@ Bool Animation::load(File &f)
 {
    if(f.getUInt()==CC4_ANIM)switch(f.decUIntV()) // version
    {
-      case 10:
+      case 11:
       {
          f.getMulti(_flag, _length, _root_start, _root_end); setRootMatrix2();
          if(!keys.loadData(f))goto error;
@@ -3540,12 +3551,21 @@ Bool Animation::load(File &f)
          if(f.ok())return true;
       }break;
 
+      case 10:
+      {
+         f.getMulti(_flag, _length, _root_start, _root_end); setRootMatrix2();
+         if(!keys.loadData(f))goto error;
+         bones.setNum(f.decUIntV()); FREPA(bones){AnimBone &abon=bones[i]; f.getStr(abon.name).getMulti(abon.type, abon.type_index, abon.type_sub); if(!abon.loadData(f))goto error;}
+         if(!events.loadRaw(f))goto error; sortEvents();
+         if(f.ok())return true;
+      }break;
+
       case 9:
       {
          f.getMulti(_flag, _length);
          if(!keys.loadData(f))goto error;
          bones.setNum(f.decUIntV()); FREPA(bones){AnimBone &abon=bones[i]; f.getStr(abon.name).getMulti(abon.type, abon.type_index, abon.type_sub); if(!abon.loadData(f))goto error;}
-         if(!events.loadRaw(f))goto error;
+         if(!events.loadRaw(f))goto error; sortEvents();
          if(f.ok()){setRootMatrix(); return true;}
       }break;
 
@@ -3554,7 +3574,7 @@ Bool Animation::load(File &f)
          f.getMulti(_flag, _length);
          if(!keys.loadData(f))goto error;
          bones.setNum(f.decUIntV()); FREPA(bones){AnimBone &abon=bones[i]; f._getStr1(abon.name).getMulti(abon.type, abon.type_index, abon.type_sub); if(!abon.loadData(f))goto error;}
-         if(!events.loadRaw(f))goto error;
+         if(!events.loadRaw(f))goto error; sortEvents();
          if(f.ok()){setRootMatrix(); return true;}
       }break;
 
@@ -3563,7 +3583,7 @@ Bool Animation::load(File &f)
          f>>_flag>>_length;
          keys.loadData3(f);
          bones.setNum(f.decUIntV()); FREPA(bones){AnimBone &abon=bones[i]; f._getStr1(abon.name).getMulti(abon.type, abon.type_index, abon.type_sub); abon.loadData3(f);}
-         if(!events.loadRaw(f))goto error;
+         if(!events.loadRaw(f))goto error; sortEvents();
          if(f.ok()){setRootMatrix(); return true;}
       }break;
 
@@ -3572,7 +3592,7 @@ Bool Animation::load(File &f)
          f>>_flag>>_length;
          keys.loadData3(f);
          bones.setNum(f.decUIntV()); FREPA(bones){AnimBone &abon=bones[i]; abon.set(null); f._getStr1(abon.name); abon.loadData3(f);}
-         if(!events.loadRaw(f))goto error;
+         if(!events.loadRaw(f))goto error; sortEvents();
          if(f.ok()){setRootMatrix(); return true;}
       }break;
 
@@ -3584,7 +3604,7 @@ Bool Animation::load(File &f)
          f>>_length;
                                                                              keys.loadData2(f);
          FREPA(bones){AnimBone &abon=bones[i]; abon.set(null); f>>abon.name; abon.loadData2(f);}
-         f.getN(events.data(), events.elms());
+         f.getN(events.data(), events.elms()); sortEvents();
          if(f.ok()){setRootMatrix(); return true;}
       }break;
 
@@ -3596,7 +3616,7 @@ Bool Animation::load(File &f)
          f>>_length;
                                                                              keys.loadData1(f);
          FREPA(bones){AnimBone &abon=bones[i]; abon.set(null); f>>abon.name; abon.loadData1(f);}
-         f.getN(events.data(), events.elms());
+         f.getN(events.data(), events.elms()); sortEvents();
          if(f.ok()){setRootMatrix(); return true;}
       }break;
 
@@ -3608,7 +3628,7 @@ Bool Animation::load(File &f)
          f>>_length;
                                                                              keys.loadData0(f);
          FREPA(bones){AnimBone &abon=bones[i]; abon.set(null); f>>abon.name; abon.loadData0(f);}
-         f.getN(events.data(), events.elms());
+         f.getN(events.data(), events.elms()); sortEvents();
          if(f.ok()){setRootMatrix(); return true;}
       }break;
 
@@ -3633,7 +3653,7 @@ Bool Animation::load(File &f)
             LoadRotTan(f,      rots);
             LoadPosTan(f, abon.poss);
          }
-         FREPA(events){AnimEvent &e=events[i]; f.get(e.name, 16); ASSERT(ELMS(e.name)>=16); f>>e.time;}
+         FREPA(events){AnimEvent &e=events[i]; f.get(e.name, 16); ASSERT(ELMS(e.name)>=16); f>>e.time;} sortEvents();
          if(f.ok()){setRootMatrix(); return true;}
       }break;
 
@@ -3653,7 +3673,7 @@ Bool Animation::load(File &f)
             LoadOrnTan(f, abon.orns);
             LoadPosTan(f, abon.poss);
          }
-         FREPA(events){AnimEvent &e=events[i]; f.get(e.name, 16); ASSERT(ELMS(e.name)>=16); f>>e.time;}
+         FREPA(events){AnimEvent &e=events[i]; f.get(e.name, 16); ASSERT(ELMS(e.name)>=16); f>>e.time;} sortEvents();
          if(f.ok()){setRootMatrix(); return true;}
       }break;
 
@@ -3671,7 +3691,7 @@ Bool Animation::load(File &f)
             f.get(abon.name, 16); ASSERT(ELMS(abon.name)>=16);
             LoadOrnTan(f, abon.orns);
          }
-         FREPA(events){AnimEvent &e=events[i]; f.get(e.name, 16); ASSERT(ELMS(e.name)>=16); f>>e.time;}
+         FREPA(events){AnimEvent &e=events[i]; f.get(e.name, 16); ASSERT(ELMS(e.name)>=16); f>>e.time;} sortEvents();
          if(f.ok()){setRootMatrix(); return true;}
       }break;
    }

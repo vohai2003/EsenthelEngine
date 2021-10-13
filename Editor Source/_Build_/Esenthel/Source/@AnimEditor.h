@@ -354,6 +354,8 @@ public:
    void setMeshSkel();
    void toGui();
    void applySpeed();
+   void  setEvent(  AnimEvent &e, int i)C;
+   int  findEvent(C AnimEvent &e       )C;
    void moveEvent(int event, flt time);
    void newEvent(flt time);
    void delEvent(int index);

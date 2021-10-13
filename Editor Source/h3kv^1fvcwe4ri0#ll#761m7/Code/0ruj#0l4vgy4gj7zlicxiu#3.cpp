@@ -2338,6 +2338,18 @@ void TransformImage(Image &image, TextParam param, bool clamp, C Color &backgrou
    if(param.name=="fixTransparent")
    {
       image.transparentToNeighbor(true, param.value.is() ? param.asFlt() : 1);
+   }else
+   if(param.name=="uniformTransparent")
+   {
+      Vec4 avg; avg.w=0; if(image.stats(null, null, null, null, null, &avg.xyz, null, &box))
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.xyz=FastBlend(avg, c).xyz;
+         image.color3DF(x, y, z, c);
+      }
    }
 }
 void TransformImage(Image &image, C MemPtr<TextParam> &params, bool clamp, C Color &background=TRANSPARENT)
