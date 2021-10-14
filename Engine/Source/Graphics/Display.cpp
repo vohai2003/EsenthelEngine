@@ -932,7 +932,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
   _window_pixel_to_screen_scale=1;
 
   _ao_all      =true;
-  _amb_mode    =AMBIENT_FLAT;
+  _amb_mode    =AMBIENT_LOW;
   _amb_soft    =1;
   _amb_jitter  =true;
   _amb_normal  =true;
@@ -967,7 +967,7 @@ DisplayClass::DisplayClass() : _monitors(Compare, null, null, 4)
 
   _diffuse_mode=(MOBILE ? DIFFUSE_LAMBERT : DIFFUSE_BURLEY);
 
-  _bump_mode=(MOBILE ? BUMP_FLAT : BUMP_RELIEF);
+  _bump_mode=(MOBILE ? BUMP_NORMAL : BUMP_RELIEF);
 
   _mtn_mode  =MOTION_NONE;
   _mtn_scale =1;
@@ -2911,8 +2911,6 @@ DisplayClass& DisplayClass::temporalReset()
    Renderer._ctxs.clear();
    return T;
 }
-DisplayClass& DisplayClass::temporalDualHistory(Bool dual) {dual=(dual!=false); if(_temp_dual!=dual){_temp_dual=dual; temporalReset();} return T;} // make sure this is bool because this is used as array index
-
 Int           DisplayClass::secondaryOpenGLContexts(             )C {return GPU_API(0, SecondaryContexts.elms());}
 DisplayClass& DisplayClass::secondaryOpenGLContexts(Byte contexts)
 {
