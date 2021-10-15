@@ -1715,23 +1715,26 @@ AnimEditor AnimEdit;
          anim_skel.del().updateBegin().updateMatrix().updateEnd();
       }
    }
-   void AnimEditor::setMeshSkel()
+   void AnimEditor::setMeshSkel(bool force)
    {
       if(ElmAnim *anim_data=data())if(Elm *skel_elm=Proj.findElm(anim_data->skel_id))if(ElmSkel *skel_data=skel_elm->skelData())if(skel_data->mesh_id.valid()) // get mesh from anim->skel->mesh
       {
-         if(mesh_id==skel_data->mesh_id
-         && skel_id==skel_elm ->id)return;
-         mesh_id=skel_data->mesh_id;
-         skel_id=skel_elm ->id;
-      #if 0 // load Game mesh (faster but uses "body skel")
-         mesh=Proj.gamePath(skel_data.mesh_id);
-         skel=mesh->skeleton();
-      #else // load Edit mesh (slower but uses "original mesh skel")
-         skel=&T.skel_data; T.skel_data.load(Proj.gamePath(skel_id));
-         mesh=&  mesh_data; Load(mesh_data, Proj.editPath(mesh_id), Proj.game_path); RemovePartsAndLods(mesh_data); mesh_data.transform(skel_data->transform());
-         mesh_data.skeleton(skel).setTanBin().setRender(false);
-      #endif
-         slot_meshes.clear();
+         if(mesh_id!=skel_data->mesh_id
+         || skel_id!=skel_elm ->id
+         || force)
+         {
+            mesh_id=skel_data->mesh_id;
+            skel_id=skel_elm ->id;
+         #if 0 // load Game mesh (faster but uses "body skel")
+            mesh=Proj.gamePath(skel_data.mesh_id);
+            skel=mesh->skeleton();
+         #else // load Edit mesh (slower but uses "original mesh skel")
+            skel=&T.skel_data; T.skel_data.load(Proj.gamePath(skel_id));
+            mesh=&  mesh_data; Load(mesh_data, Proj.editPath(mesh_id), Proj.game_path); RemovePartsAndLods(mesh_data); mesh_data.transform(skel_data->transform());
+            mesh_data.skeleton(skel).setTanBin().setRender(false);
+         #endif
+            slot_meshes.clear();
+         }
          setAnimSkel(true);
          return;
       }

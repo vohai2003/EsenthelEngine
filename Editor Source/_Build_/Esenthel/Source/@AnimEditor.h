@@ -351,7 +351,7 @@ public:
    void playToggle();
    void playUpdate(flt multiplier=1);
    void setAnimSkel(bool force=false);
-   void setMeshSkel();
+   void setMeshSkel(bool force=false);
    void toGui();
    void applySpeed();
    void  setEvent(  AnimEvent &e, int i)C;
