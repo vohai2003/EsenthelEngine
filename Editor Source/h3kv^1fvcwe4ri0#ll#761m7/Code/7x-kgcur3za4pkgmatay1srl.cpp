@@ -126,7 +126,7 @@ class EditMaterial
 
    // operations
    void reset() {T=EditMaterial();}
-   void resetAlpha() {color_s.w=(HasAlphaTestNoBlend(tech) ? 0.5 : 1); color_time.getUTC();}
+   void resetAlpha() {color_s.w=((HasAlphaTest(tech) && !HasAlphaBlend(tech) && !HasAlphaTestDither(tech)) ? 0.5 : 1); color_time.getUTC();}
    void separateNormalMap(C TimeStamp &time=TimeStamp().getUTC())
    {
       if(!normal_map.is() && hasNormalMap()) // if normal map is not specified, but is created from some other map
@@ -509,8 +509,8 @@ class EditMaterial
             if(changed&(TEXF_COLOR|TEXF_ALPHA)) // enable alpha only if we've changed color/alpha textures (this is to allow having multiple materials with same textures with alpha, but some materials not using alpha)
             {
             enable_alpha:
-               if(!HasAlphaBlend(tech) && color_s.w>=1-EPS_COL8){color_s.w=0.5; color_time=time;}
-               if(!HasAlpha     (tech)                         ){tech=MTECH_ALPHA_TEST; tech_time=time;}
+               if(!HasAlphaBlend(tech) && !HasAlphaTestDither(tech) && color_s.w>=1-EPS_COL8){color_s.w=0.5; color_time=time;}
+               if(!HasAlpha     (tech)                                                      ){tech=MTECH_ALPHA_TEST; tech_time=time;}
             }
          }else goto disable_alpha; // alpha map not available
       }else
