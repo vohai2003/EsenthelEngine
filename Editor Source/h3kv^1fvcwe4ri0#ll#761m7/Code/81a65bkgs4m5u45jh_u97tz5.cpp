@@ -4423,7 +4423,7 @@ class ProjectEx : ProjectHierarchy
       super.skelTransformChanged(skel_id);
 
       if(ObjEdit.skel_elm && ObjEdit.skel_elm.id==skel_id)ObjEdit.skelTransformChanged();
-      if(AnimEdit.skel_id==skel_id)AnimEdit.setMeshSkel();
+      if(AnimEdit.skel_id==skel_id)AnimEdit.setMeshSkel(true);
    }
    virtual void objChanged(Elm &obj)override
    {
@@ -4440,7 +4440,7 @@ class ProjectEx : ProjectHierarchy
       super.meshChanged(mesh);
 
       if(ObjEdit.mesh_elm && ObjEdit.mesh_elm.id==mesh.id)ObjEdit.meshChanged();
-      if(AnimEdit.mesh_id==mesh.id)AnimEdit.setMeshSkel();
+      if(AnimEdit.mesh_id==mesh.id)AnimEdit.setMeshSkel(true);
       if(Selection.elms() && Selection[0].mesh_proper.id()==mesh.id)WorldEdit.param_edit.meshVariationChanged();
    }
    void elmChanging(Elm &elm)

@@ -116,6 +116,16 @@ Bool HasAlphaTest(MATERIAL_TECHNIQUE technique)
       default: return false;
    }
 }
+Bool HasAlphaTestDither(MATERIAL_TECHNIQUE technique)
+{
+   switch(technique)
+   {
+      case MTECH_ALPHA_TEST_DITHER:
+         return true;
+
+      default: return false;
+   }
+}
 Bool HasAlphaTestNoBlend(MATERIAL_TECHNIQUE technique)
 {
    switch(technique)

@@ -229,6 +229,7 @@ class SelectionClass;
 class ServerClass;
 class SetMtrlColorClass;
 class SizeStatistics;
+class SlotMesh;
 class SmallMatrix;
 class SmallMatrix3;
 class SoundEditor;
@@ -277,7 +278,9 @@ enum APPLY_MODE
 {
    APPLY_SET,
    APPLY_BLEND,
+   APPLY_BLEND_SIMPLE,
    APPLY_MERGE,
+   APPLY_MERGE_SIMPLE,
    APPLY_MUL,
    APPLY_MUL_RGB,
    APPLY_MUL_RGB_SAT,
@@ -685,8 +688,8 @@ const int           ForceInstaller=-2, // -2=disable and don't update, -1=disabl
                     MeshSplitMinVtxs=12000, // min number of vertexes in a mesh to split it
                     MeshSplitMinSize=4;
 const uint          NewElmTime=1;
-const uint ProjectVersion     =86, // !! increase this by one if any of engine/editor asset formats have changed !!
-           ClientServerVersion=86;
+const uint ProjectVersion     =87, // !! increase this by one if any of engine/editor asset formats have changed !!
+           ClientServerVersion=87;
 const int           ServerNetworkCompressionLevel=9           , ClientNetworkCompressionLevel=9            , EsenthelProjectCompressionLevel=9;
 /******************************************************************************/
 // TYPEDEFS
@@ -718,6 +721,7 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@SplitAnimation.h"
 #include "@SmallMatrix3.h"
 #include "@SmallMatrix.h"
+#include "@SlotMesh.h"
 #include "@ServerClass.h"
 #include "@SelectionClass.h"
 #include "@Rotator.h"
@@ -823,7 +827,6 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@AreaBuild.h"
 #include "@Project.h"
 #include "@GuiEditParam.h"
-#include "@WaterVer.h"
 #include "@TextWhite.h"
 #include "@PathProps.h"
 #include "@ElmWorld.h"
@@ -838,6 +841,7 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@ElmPanel.h"
 #include "@ElmObjClass.h"
 #include "@ElmObj.h"
+#include "@ViewportSkin.h"
 #include "@ElmMiniMap.h"
 #include "@ElmMesh.h"
 #include "@ElmMaterial.h"
@@ -851,27 +855,30 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@ElmFile.h"
 #include "@ElmEnv.h"
 #include "@ElmEnum.h"
-#include "@ViewportSkin.h"
 #include "@ElmCodeData.h"
+#include "@TextBlack.h"
+#include "@ObjPos.h"
+#include "@ObjListClass.h"
 #include "@ObjData.h"
 #include "@Obj.h"
-#include "@TextBlack.h"
+#include "@NewWorldClass.h"
+#include "@WorldChange.h"
 #include "@NewLodClass.h"
 #include "@EditWaterMtrl.h"
-#include "@WorldChange.h"
 #include "@MiscRegion.h"
 #include "@StoreClass.h"
 #include "@WaypointPos.h"
 #include "@MeshAOClass.h"
 #include "@MaterialRegion.h"
 #include "@LodRegion.h"
+#include "@TransformRegion.h"
 #include "@LeafRegion.h"
 #include "@PublishClass.h"
 #include "@PropWin.h"
 #include "@PropEx.h"
 #include "@ImportTerrainClass.h"
 #include "@ImporterClass.h"
-#include "@TransformRegion.h"
+#include "@WaterVer.h"
 #include "@ProjectSettings.h"
 #include "@Projects.h"
 #include "@SizeStatistics.h"
@@ -884,48 +891,45 @@ ASSERT(OBJ_ACCESS_CUSTOM==0 && OBJ_ACCESS_TERRAIN==1 && OBJ_ACCESS_GRASS==2 && O
 #include "@AppPropsEditor.h"
 #include "@AnimEditor.h"
 #include "@AdjustBoneOrns.h"
-#include "@PanelEditor.h"
-#include "@TextureDownsize.h"
-#include "@PhysMtrlEditor.h"
-#include "@MulSoundVolumeClass.h"
 #include "@VideoOptions.h"
+#include "@MulSoundVolumeClass.h"
 #include "@VideoEditor.h"
 #include "@RemoveProjWin.h"
-#include "@MiniMapEditor.h"
 #include "@GuiView.h"
 #include "@GuiSkinEditor.h"
-#include "@IconSettings.h"
-#include "@MergeSimilarMaterials.h"
+#include "@MiniMapEditor.h"
 #include "@ParamEditor.h"
 #include "@SoundEditor.h"
 #include "@PanelImageEditor.h"
-#include "@DetectSimilarTextures.h"
+#include "@MergeSimilarMaterials.h"
+#include "@IconSettings.h"
 #include "@GroupRegion.h"
+#include "@GridPlaneLevel.h"
+#include "@DetectSimilarTextures.h"
+#include "@ElmProperties.h"
 #include "@CreateMaterials.h"
 #include "@CopyElements.h"
 #include "@ConvertToDeAtlasClass.h"
 #include "@ConvertToAtlasClass.h"
 #include "@CompareProjects.h"
-#include "@GridPlaneLevel.h"
-#include "@IconEditor.h"
-#include "@ElmProperties.h"
-#include "@FontEditor.h"
 #include "@TheaterClass.h"
-#include "@SetMtrlColorClass.h"
-#include "@WaterMtrlRegion.h"
+#include "@FontEditor.h"
+#include "@TextStyleEditor.h"
+#include "@IconEditor.h"
 #include "@ObjScale.h"
 #include "@ObjRot.h"
-#include "@TextStyleEditor.h"
-#include "@ObjPos.h"
+#include "@WaterMtrlRegion.h"
+#include "@TextureDownsize.h"
 #include "@ObjPaintClass.h"
-#include "@ObjListClass.h"
-#include "@RenameProjWin.h"
 #include "@EnvEditor.h"
+#include "@RenameProjWin.h"
+#include "@PanelEditor.h"
 #include "@ObjClassEditor.h"
 #include "@EnumEditor.h"
-#include "@NewWorldClass.h"
-#include "@IconSettsEditor.h"
+#include "@PhysMtrlEditor.h"
+#include "@SetMtrlColorClass.h"
 #include "@ObjView.h"
+#include "@IconSettsEditor.h"
 #include "@WorldView.h"
 #include "@WorldBrushClass.h"
 /******************************************************************************/

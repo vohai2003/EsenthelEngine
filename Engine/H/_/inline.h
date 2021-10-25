@@ -56,6 +56,7 @@ inline C SkelBone * Skeleton ::findBone (CChar8 *name                           
 inline C SkelSlot * Skeleton ::findSlot (CChar8 *name                                              )C {return ConstCast(T).findSlot (name                            );}
 inline C SkelBone & Skeleton :: getBone (CChar8 *name                                              )C {return ConstCast(T). getBone (name                            );}
 inline C SkelSlot & Skeleton :: getSlot (CChar8 *name                                              )C {return ConstCast(T). getSlot (name                            );}
+inline C OrientM  * AnimSkel ::findSlot (CChar8 *name                                              )C {return ConstCast(T).findSlot (name                            );}
 inline C AnimBone * Animation::findBone (CChar8 *name, BONE_TYPE type, Int type_index, Int type_sub)C {return ConstCast(T).findBone (name, type, type_index, type_sub);}
 inline C AnimEvent* Animation::findEvent(CChar8 *name                                              )C {return ConstCast(T).findEvent(name                            );}
 /******************************************************************************/

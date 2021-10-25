@@ -10,6 +10,41 @@
    Upon saving a mesh, it's saved as both "Edit" and "Game" versions.
 
 /******************************************************************************/
+class SlotMesh
+{
+   MeshPtr mesh;
+   Str8    name;
+   flt     scale=1;
+
+   void set(C MeshPtr &mesh, C Str &name) {T.mesh=mesh; T.name=name;}
+   void draw(C Skeleton &skel)
+   {
+      if(mesh)if(C SkelSlot *slot=skel.findSlot(name))
+      {
+         Matrix m=*slot; m.scaleOrn(scale); mesh->draw(m);
+      }
+   }
+   void draw(C AnimSkel &skel)
+   {
+      if(mesh)if(C OrientM *slot=skel.findSlot(name))
+      {
+         Matrix m=*slot; m.scaleOrn(scale); mesh->draw(m);
+      }
+   }
+   static void Set(MemPtr<SlotMesh> slot_meshes, cchar8 *name, C MeshPtr &mesh)
+   {
+      SlotMesh *sm=null; REPA(slot_meshes)if(slot_meshes[i].name==name)
+      {
+         if(!mesh){slot_meshes.remove(i); return;}
+         sm=&slot_meshes[i]; break;
+      }
+      if(mesh)
+      {
+         if(!sm)sm=&slot_meshes.New();
+         sm.set(mesh, name);
+      }
+   }
+}
 class ObjView : Viewport4Region
 {
    enum MODE
@@ -116,21 +151,6 @@ class ObjView : Viewport4Region
       void drawBlend()
       {
          if(mesh)mesh->drawBlend(matrix, &NoTemp(Vec4(1, 1, 1, ObjEdit.background_alpha())));
-      }
-   }
-   class SlotMesh
-   {
-      MeshPtr mesh;
-      Str8    name;
-      flt     scale=1;
-
-      void set(C MeshPtr &mesh, C Str &name) {T.mesh=mesh; T.name=name;}
-      void draw(Skeleton &skel)
-      {
-         if(mesh)if(SkelSlot *slot=skel.findSlot(name))
-         {
-            Matrix m=*slot; m.scaleOrn(scale); mesh->draw(m);
-         }
       }
    }
 
@@ -3258,20 +3278,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    }
    void putMeshToSlot(C MeshPtr &mesh, int slot_index)
    {
-      if(mesh_skel && InRange(slot_index, mesh_skel.slots))
-      {
-         SkelSlot &slot=mesh_skel.slots[slot_index];
-         SlotMesh *sm=null; REPA(slot_meshes)if(slot_meshes[i].name==slot.name)
-         {
-            if(!mesh){slot_meshes.remove(i); return;}
-            sm=&slot_meshes[i]; break;
-         }
-         if(mesh)
-         {
-            if(!sm)sm=&slot_meshes.New();
-            sm.set(mesh, slot.name);
-         }
-      }
+      if(mesh_skel && InRange(slot_index, mesh_skel.slots))SlotMesh.Set(slot_meshes, mesh_skel.slots[slot_index].name, mesh);
    }
 
    /////////////////////////////////////////

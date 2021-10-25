@@ -21,6 +21,8 @@ struct AnimEvent // Animation Event - custom event which occurs at 'time' in 'An
    void save(TextNode &node)C; // save as text
 
    AnimEvent() {name[0]=0;}
+
+   Bool operator==(C AnimEvent &event)C;
 };
 /******************************************************************************/
 enum ANIM_FLAG // Animation Flags
@@ -119,6 +121,7 @@ struct Animation // set of animation keyframes used for animating 'AnimatedSkele
 
    Animation& removeUnused(); // remove unused bone animations
 
+   Animation& sortEvents(); // sort events in time order, this should be called after manually modifying the events and changing their time positions
 #if EE_PRIVATE
    void setRootMatrix2();
    void getRootMatrixExactTime(Matrix &matrix, Flt time)C; // get root 'matrix' at specified 'time'

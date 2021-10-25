@@ -440,7 +440,7 @@
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
 			<WarningLevel>Level3</WarningLevel>
-			<DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;unused-private-field;</DisableSpecificWarnings>
+			<DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;unused-private-field;misleading-indentation;</DisableSpecificWarnings>
 			<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
 			<SmallerTypeCheck>true</SmallerTypeCheck>
 			<BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -537,7 +537,7 @@
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
 			<WarningLevel>Level3</WarningLevel>
-			<DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;unused-private-field;</DisableSpecificWarnings>
+			<DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;unused-private-field;misleading-indentation;</DisableSpecificWarnings>
 			<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
 			<CompileAsWinRT>true</CompileAsWinRT>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -817,7 +817,7 @@
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
 			<WarningLevel>Level3</WarningLevel>
-			<DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;unused-private-field;</DisableSpecificWarnings>
+			<DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;unused-private-field;misleading-indentation;</DisableSpecificWarnings>
 			<DebugInformationFormat/>
 			<LanguageStandard>stdcpplatest</LanguageStandard>
 			<BufferSecurityCheck>false</BufferSecurityCheck>
@@ -921,7 +921,7 @@
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
 			<WarningLevel>Level3</WarningLevel>
-			<DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;unused-private-field;</DisableSpecificWarnings>
+			<DisableSpecificWarnings>comment;parentheses;switch;address-of-temporary;null-dereference;int-to-void-pointer-cast;overloaded-virtual;unused-local-typedef;unused-private-field;misleading-indentation;</DisableSpecificWarnings>
 			<DebugInformationFormat/>
 			<CompileAsWinRT>true</CompileAsWinRT>
 			<LanguageStandard>stdcpp17</LanguageStandard>

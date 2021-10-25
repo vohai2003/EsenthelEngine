@@ -232,17 +232,22 @@ class AnimEditor : Viewport4Region
                ElmRect(r, AnimEdit.animTime()).draw(BLACK); // draw time position
                if(events)
                {
-                  TextStyleParams ts; ts.size=(AnimEdit.preview.event_op()>=0 ? 0.05 : 0.035); ts.align.set(0, 1); ts.color=ColorAlpha(0.6);
-                  FREPA(anim.events) // draw events
+                  TextStyleParams ts; ts.size=(AnimEdit.preview.event_op()>=0 ? 0.04 : 0.035); ts.align.set(0, 1); ts.color=ColorAlpha(0.6);
+                  TextStyleParams ts_lit=ts; ts_lit.color=LitColor; ts_lit.size*=1.1;
+                  flt  last_x=-FLT_MAX, y=r.max.y;
+                  Vec2 pos; pos.y=y;
+                  FREPA(anim.events) // draw events, from start
                   {
                    C AnimEvent &event=anim.events[i];
                      Rect e=ElmRect(r, event.time);
-                     e.draw((event_lit==i) ? LitColor : LitSelColor); if((always_draw_events || AnimEdit.preview.event_op()>=0) && event_lit!=i)D.text(ts, e.up(), event.name);
-                  }
-                  if(InRange(event_lit, anim.events)) // draw highlighted event last to be on top of others
-                  {
-                   C AnimEvent &event=anim.events[event_lit];
-                     ts.resetColors(false); ts.size*=1.3; D.text(ts, ElmRect(r, event.time).up(), event.name);
+                     e.draw((event_lit==i) ? LitColor : LitSelColor); if((always_draw_events || AnimEdit.preview.event_op()>=0))
+                     {
+                        pos.x=e.centerX();
+                        flt w=ts.textWidth(event.name)/2, l=pos.x-w, r=pos.x+w;
+                        if(l<=last_x)pos.y+=ts.size.y;else pos.y=y;
+                        MAX(last_x, r);
+                        D.text((event_lit==i) ? ts_lit : ts, pos, event.name);
+                     }
                   }
                }else
                {
@@ -303,6 +308,7 @@ class AnimEditor : Viewport4Region
       Tabs         event_op;
       Track        track;
       bool         draw_bones=false, draw_slots=false, draw_axis=false, draw_plane=false;
+      int          lit_slot=-1, sel_slot=-1;
       flt          time_speed=1, prop_max_x=0,
                    cam_yaw=PI, cam_pitch=0, cam_zoom=1;
       Camera       cam;
@@ -327,17 +333,26 @@ class AnimEditor : Viewport4Region
             {
                if(AnimEdit.mesh)AnimEdit.mesh->draw(AnimEdit.anim_skel);
 
+               if(AnimEdit.preview.draw_slots)REPAO(AnimEdit.slot_meshes).draw(AnimEdit.anim_skel);
+
                LightDir(!(ActiveCam.matrix.z*2+ActiveCam.matrix.x-ActiveCam.matrix.y), 1-D.ambientColorL()).add(false);
             }break;
          }
+      }
+      void setCam()
+      {
+       C MeshPtr &mesh=AnimEdit.mesh;
+         Box box(0); if(mesh){if(mesh->is())box=mesh->ext;else if(AnimEdit.skel)box=*AnimEdit.skel;}
+         flt dist=Max(0.1, GetDist(box));
+         D.viewFrom(dist*0.01).viewRange(dist*24);
+         SetCam(cam, box, cam_yaw, cam_pitch, cam_zoom);
       }
       static void Draw(Viewport &viewport) {AnimEdit.preview.draw();}
              void draw()
       {
          AnimEdit.setAnimSkel();
-         if(C Skeleton *skel=AnimEdit.skel)
+         if(AnimEdit.skel)
          {
-          C MeshPtr          &mesh     =AnimEdit.mesh;
           C AnimatedSkeleton &anim_skel=AnimEdit.anim_skel;
 
             // remember settings
@@ -351,10 +366,7 @@ class AnimEditor : Viewport4Region
             Renderer.allow_temporal=false; // disable Temporal because previous bone matrixes are incorrect
 
             // render
-            Box box(0); if(mesh){if(mesh->is())box=mesh->ext;else if(skel)box=*skel;}
-            flt dist=Max(0.1, GetDist(box));
-            D.viewFrom(dist*0.01).viewRange(dist*24);
-            SetCam(cam, box, cam_yaw, cam_pitch, cam_zoom);
+            setCam();
             Renderer(Preview.Render);
 
             Renderer.setDepthForDebugDrawing();
@@ -366,7 +378,8 @@ class AnimEditor : Viewport4Region
             if(draw_bones || draw_slots)
             {
                D.depthLock(false);
-               anim_skel.draw(draw_bones ? ColorAlpha(CYAN, 0.75) : TRANSPARENT, draw_slots ? ORANGE : TRANSPARENT);
+               anim_skel.draw(draw_bones ? ColorAlpha(CYAN, 0.75) : TRANSPARENT/*, draw_slots ? ORANGE : TRANSPARENT*/);
+               if(draw_slots)FREPAO(anim_skel.slots).draw((sel_slot==i && lit_slot==i) ? LitSelColor : (sel_slot==i || lit_slot==i) ? SelColor : Color(255, 128, 0, 255), SkelSlotSize);
                D.depthUnlock();
             }
             D.lineSmooth(line_smooth);
@@ -436,6 +449,7 @@ class AnimEditor : Viewport4Region
       }
       virtual void update(C GuiPC &gpc)override
       {
+         lit_slot=-1;
          flt old_time=AnimEdit.animTime();
          if(gpc.visible && visible())
          {
@@ -467,6 +481,19 @@ class AnimEditor : Viewport4Region
             REPA(Touches)if(Touches[i].guiObj()==&viewport && Touches[i].on()){cam_yaw-=Touches[i].ad().x*2.0; cam_pitch+=Touches[i].ad().y*2.0;}
 
             AnimEdit.playUpdate(time_speed);
+            
+            if(draw_slots && Gui.dragging())
+            {
+               viewport.setDisplayView();
+               setCam();
+               flt dist=0.03;
+               REPA(AnimEdit.anim_skel.slots)
+               {
+                C OrientM &slot=AnimEdit.anim_skel.slots[i];
+                  flt d; if(Distance2D(Ms.pos(), Edge(slot.pos, slot.pos+slot.perp*SkelSlotSize), d, 0))
+                     if(d<dist){dist=d; lit_slot=i;}
+               }
+            }
          }
          super.update(gpc); // process after adjusting 'animTime' so clicking on anim track will not be changed afterwards
 
@@ -725,6 +752,7 @@ class AnimEditor : Viewport4Region
    SkelAnim          skel_anim;
    Mesh              mesh_data;
    MeshPtr           mesh;
+   Memc<SlotMesh>    slot_meshes;
    Preview           preview;
    Track             track;
    Button            axis, draw_bones, draw_mesh, show_grid, undo, redo, locate, edit, force_play, start, end, prev_frame, next_frame,
@@ -1818,20 +1846,26 @@ class AnimEditor : Viewport4Region
          anim_skel.del().updateBegin().updateMatrix().updateEnd();
       }
    }
-   void setMeshSkel()
+   void setMeshSkel(bool force=false)
    {
       if(ElmAnim *anim_data=data())if(Elm *skel_elm=Proj.findElm(anim_data.skel_id))if(ElmSkel *skel_data=skel_elm.skelData())if(skel_data.mesh_id.valid()) // get mesh from anim->skel->mesh
       {
-         mesh_id=skel_data.mesh_id;
-         skel_id=skel_elm .id;
-      #if 0 // load Game mesh (faster but uses "body skel")
-         mesh=Proj.gamePath(skel_data.mesh_id);
-         skel=mesh->skeleton();
-      #else // load Edit mesh (slower but uses "original mesh skel")
-         skel=&T.skel_data; T.skel_data.load(Proj.gamePath(skel_id));
-         mesh=&  mesh_data; Load(mesh_data, Proj.editPath(mesh_id), Proj.game_path); RemovePartsAndLods(mesh_data); mesh_data.transform(skel_data.transform());
-         mesh_data.skeleton(skel).setTanBin().setRender(false);
-      #endif
+         if(mesh_id!=skel_data.mesh_id
+         || skel_id!=skel_elm .id
+         || force)
+         {
+            mesh_id=skel_data.mesh_id;
+            skel_id=skel_elm .id;
+         #if 0 // load Game mesh (faster but uses "body skel")
+            mesh=Proj.gamePath(skel_data.mesh_id);
+            skel=mesh->skeleton();
+         #else // load Edit mesh (slower but uses "original mesh skel")
+            skel=&T.skel_data; T.skel_data.load(Proj.gamePath(skel_id));
+            mesh=&  mesh_data; Load(mesh_data, Proj.editPath(mesh_id), Proj.game_path); RemovePartsAndLods(mesh_data); mesh_data.transform(skel_data.transform());
+            mesh_data.skeleton(skel).setTanBin().setRender(false);
+         #endif
+            slot_meshes.clear();
+         }
          setAnimSkel(true);
          return;
       }
@@ -1881,12 +1915,20 @@ class AnimEditor : Viewport4Region
          toGui();
       }
    }
+   void  setEvent(  AnimEvent &e, int i)C {if(anim && InRange(i, anim.events))e=anim.events[i];}
+   int  findEvent(C AnimEvent &e       )C {if(anim)REPA(anim.events)if(e==anim.events[i])return i; return -1;}
    void moveEvent(int event, flt time)
    {
       if(anim && InRange(event, anim.events))
       {
          undos.set("eventMove");
          anim.events[event].time=time;
+         AnimEvent s, ps, l, pl;
+         setEvent(s, track.event_sel); setEvent(ps, preview.track.event_sel);
+         setEvent(l, track.event_lit); setEvent(pl, preview.track.event_lit);
+         anim.sortEvents();
+         track.event_sel=findEvent(s); preview.track.event_sel=findEvent(ps);
+         track.event_lit=findEvent(l); preview.track.event_lit=findEvent(pl);
          setChanged();
       }
    }
@@ -1906,9 +1948,10 @@ class AnimEditor : Viewport4Region
             if(Equal(event.name, name) && Abs(event.time-time)<=TimeEps())return;
          }
 
-         anim.events.New().set(name, time);
+         AnimEvent event=anim.events.New().set(name, time);
+         anim.sortEvents();
          setChanged();
-         if(edit_name)RenameEvent.activate(anim.events.elms()-1); // activate window for renaming created event
+         if(edit_name)RenameEvent.activate(findEvent(event)); // activate window for renaming created event
       }
    }
    void delEvent(int index)
@@ -1928,6 +1971,7 @@ class AnimEditor : Viewport4Region
       {
          undos.set("event"); // keep the same as 'newEvent' because they're linked
          Set(anim.events[i].name, new_name);
+         anim.sortEvents();
          setChanged();
          break;
       }
@@ -2085,11 +2129,15 @@ class AnimEditor : Viewport4Region
    }
    void drag(Memc<UID> &elms, GuiObj *obj, C Vec2 &screen_pos)
    {
-      if(contains(obj) || preview.contains(obj))
+      bool preview_contains=preview.contains(obj);
+      if(contains(obj) || preview_contains)
          REPA(elms)
             if(Elm *obj=Proj.findElm(elms[i], ELM_OBJ))
       {
-         setTarget(obj.id.asHex());
+         if(preview_contains && skel && InRange(preview.lit_slot, skel.slots))
+         {
+            SlotMesh.Set(slot_meshes, skel.slots[preview.lit_slot].name, Proj.gamePath(Proj.objToMesh(obj)));
+         }else setTarget(obj.id.asHex());
          elms.remove(i, true);
          break;
       }

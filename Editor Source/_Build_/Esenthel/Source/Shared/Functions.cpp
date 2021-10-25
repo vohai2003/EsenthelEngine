@@ -2206,6 +2206,18 @@ void TransformImage(Image &image, TextParam param, bool clamp, C Color &backgrou
    if(param.name=="fixTransparent")
    {
       image.transparentToNeighbor(true, param.value.is() ? param.asFlt() : 1);
+   }else
+   if(param.name=="uniformTransparent")
+   {
+      Vec4 avg; avg.w=0; if(image.stats(null, null, null, null, null, &avg.xyz, null, &box))
+      for(int z=box.min.z; z<box.max.z; z++)
+      for(int y=box.min.y; y<box.max.y; y++)
+      for(int x=box.min.x; x<box.max.x; x++)
+      {
+         Vec4 c=image.color3DF(x, y, z);
+         c.xyz=FastBlend(avg, c).xyz;
+         image.color3DF(x, y, z, c);
+      }
    }
 }
 void TransformImage(Image &image, C MemPtr<TextParam> &params, bool clamp, C Color &background)
@@ -2291,7 +2303,9 @@ force_src_resize:
          APPLY_MODE mode=APPLY_SET; if(C TextParam *p=file.findParam("mode"))
          {
             if(p->value=="blend"                                                                  )mode=APPLY_BLEND;else
+            if(p->value=="blendSimple"                                                            )mode=APPLY_BLEND_SIMPLE;else
             if(p->value=="merge" || p->value=="blendPremultiplied" || p->value=="premultipliedBlend")mode=APPLY_MERGE;else
+            if(p->value=="mergeSimple"                                                            )mode=APPLY_MERGE_SIMPLE;else
             if(p->value=="mul"                                                                    )mode=APPLY_MUL;else
             if(p->value=="mulRGB"                                                                 )mode=APPLY_MUL_RGB;else
             if(p->value=="mulRGBS"                                                                )mode=APPLY_MUL_RGB_SAT;else
@@ -2392,8 +2406,10 @@ force_src_resize:
                            switch(mode)
                            {
                               default                       : c=l; break; // APPLY_SET
-                              case APPLY_BLEND              : c=     Blend(base, l); break;
-                              case APPLY_MERGE              : c=MergeBlend(base, l); break;
+                              case APPLY_BLEND              : c=         Blend(base, l); break;
+                              case APPLY_BLEND_SIMPLE       : c=     FastBlend(base, l); break;
+                              case APPLY_MERGE              : c=    MergeBlend(base, l); break;
+                              case APPLY_MERGE_SIMPLE       : c=FastMergeBlend(base, l); break;
                               case APPLY_MUL                : c=base*l; break;
                               case APPLY_MUL_RGB            : c.set(base.xyz*l.xyz, base.w); break;
                               case APPLY_MUL_RGB_LIN        : c.set(LinearToSRGB(SRGBToLinear(base.xyz)*l.xyz), base.w); break; // this treats 'l' as already linear

@@ -24,13 +24,12 @@ enum MATERIAL_TECHNIQUE : Byte // Material Techniques
    MTECH_ALPHA_TEST_DITHER     , // indicates that textures alpha channel will be used as models transparency (this is slightly slower than Default as alpha testing may disable some hardware-level optimizations)
    MTECH_NUM                   , // number of Material Techniques
 };
-Bool HasAlpha           (MATERIAL_TECHNIQUE technique); // if 'technique' involves Alpha-Blending or     Alpha-Testing
-Bool HasAlphaTest       (MATERIAL_TECHNIQUE technique); // if 'technique' involves Alpha-Testing
-Bool HasAlphaTestNoBlend(MATERIAL_TECHNIQUE technique); // if 'technique' involves Alpha-Testing  but no Alpha-Blending
-Bool HasAlphaBlend      (MATERIAL_TECHNIQUE technique); // if 'technique' involves Alpha-Blending
-Bool HasAlphaBlendNoTest(MATERIAL_TECHNIQUE technique); // if 'technique' involves Alpha-Blending but no Alpha-Testing
-Bool HasLeaf            (MATERIAL_TECHNIQUE technique); // if 'technique' involves Leaf  Bending
-Bool HasDepthWrite      (MATERIAL_TECHNIQUE technique); // if 'technique' involves Depth-Writing
+Bool HasAlpha          (MATERIAL_TECHNIQUE technique); // if 'technique' involves Alpha-Testing or Alpha-Blending
+Bool HasAlphaTest      (MATERIAL_TECHNIQUE technique); // if 'technique' involves Alpha-Testing
+Bool HasAlphaTestDither(MATERIAL_TECHNIQUE technique); // if 'technique' involves Alpha-Testing with Dithering
+Bool HasAlphaBlend     (MATERIAL_TECHNIQUE technique); // if 'technique' involves Alpha-Blending
+Bool HasLeaf           (MATERIAL_TECHNIQUE technique); // if 'technique' involves Leaf  Bending
+Bool HasDepthWrite     (MATERIAL_TECHNIQUE technique); // if 'technique' involves Depth-Writing
 /******************************************************************************/
 #define MATERIAL_REFLECT 0.04f // default Material reflectivity value
 /******************************************************************************/
@@ -107,20 +106,18 @@ struct Material : MaterialParams // Mesh Rendering Material - contains render pa
   ~Material();
 
 #if EE_PRIVATE
-   Bool hasAlpha            ()C {return  HasAlpha           (technique);} // if material technique involves Alpha-Blending or     Alpha-Testing
-   Bool hasAlphaBlend       ()C {return  HasAlphaBlend      (technique);} // if material technique involves Alpha-Blending
-   Bool hasAlphaBlendNoTest ()C {return  HasAlphaBlendNoTest(technique);} // if material technique involves Alpha-Blending but no Alpha-Testing
-   Bool hasAlphaTest        ()C {return _has_alpha_test                ;} // if material technique involves Alpha-Testing
-   Bool hasAlphaTestNoBlend ()C {return  HasAlphaTestNoBlend(technique);} // if material technique involves Alpha-Testing  but no Alpha-Blending
-   Bool hasAlphaBlendNoLight()C;                                          // if material technique involves Alpha-Blending with no Light
-   Bool hasAlphaBlendLight  ()C;                                          // if material technique involves Alpha-Blending with    Light
-   Bool hasDepthWrite       ()C {return _depth_write                   ;} // if material technique involves Depth-Writing
-   Bool hasGrass            ()C;                                          // if material technique involves    Grass Bending
-   Bool hasGrass2D          ()C;                                          // if material technique involves 2D Grass Bending
-   Bool hasGrass3D          ()C;                                          // if material technique involves 3D Grass Bending
-   Bool hasLeaf             ()C {return  HasLeaf            (technique);} // if material technique involves    Leaf  Bending
-   Bool hasLeaf2D           ()C;                                          // if material technique involves 2D Leaf  Bending
-   Bool hasLeaf3D           ()C;                                          // if material technique involves 3D Leaf  Bending
+   Bool hasAlpha            ()C {return  HasAlpha      (technique);} // if material technique involves Alpha-Blending or     Alpha-Testing
+   Bool hasAlphaTest        ()C {return _has_alpha_test           ;} // if material technique involves Alpha-Testing
+   Bool hasAlphaBlend       ()C {return  HasAlphaBlend (technique);} // if material technique involves Alpha-Blending
+   Bool hasAlphaBlendNoLight()C;                                     // if material technique involves Alpha-Blending with no Light
+   Bool hasAlphaBlendLight  ()C;                                     // if material technique involves Alpha-Blending with    Light
+   Bool hasDepthWrite       ()C {return _depth_write              ;} // if material technique involves Depth-Writing
+   Bool hasGrass            ()C;                                     // if material technique involves    Grass Bending
+   Bool hasGrass2D          ()C;                                     // if material technique involves 2D Grass Bending
+   Bool hasGrass3D          ()C;                                     // if material technique involves 3D Grass Bending
+   Bool hasLeaf             ()C {return  HasLeaf       (technique);} // if material technique involves    Leaf  Bending
+   Bool hasLeaf2D           ()C;                                     // if material technique involves 2D Leaf  Bending
+   Bool hasLeaf3D           ()C;                                     // if material technique involves 3D Leaf  Bending
 
    void setOpaque    (     )C;
    void setEmissive  (     )C;

@@ -4,7 +4,7 @@ namespace EE{
 static Int Compare(C Edit::Elm &elm, C UID &id) {return Compare(elm.id, id);}
 namespace Edit{
 /******************************************************************************/
-#define EI_VER 49 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
+#define EI_VER 50 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
 #define EI_STR "Esenthel Editor Network Interface"
 #define CLIENT_WAIT_TIME         (   60*1000) //    60 seconds
 #define CLIENT_WAIT_TIME_LONG    (15*60*1000) // 15*60 seconds, some operations may take a long time to complete (reloading material textures with resizing, getting world objects, ..)
