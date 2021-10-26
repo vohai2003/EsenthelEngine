@@ -74,7 +74,7 @@ class Trail // Swing Trail Effect
       SetMatrix(); // set identity matrix
 
       // before drawing custom graphics in RM_BLEND using 'VI' we need to set alpha blending mode in order to avoid accidental glow effect
-      D.alpha(ALPHA_BLEND_DEC);
+      D.alpha(ALPHA_RENDER_BLEND);
 
       // use Vertex Index Buffer for custom drawing
     //VI.shader(..); setup custom shader if needed
