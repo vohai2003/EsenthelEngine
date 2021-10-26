@@ -45,8 +45,8 @@ then Engine enters the Public Domain, and can be used by anyone without any rest
 
 SHARING
 Esenthel Engine creator is allowed to publicly share that you are using Esenthel Engine,
-include your organization's logo in the information, and share your application's screenshots and videos
-(including trailers, teasers, cinematics and gameplay).
+include your organization's logo in the information, and share your application's screenshots
+and videos (including trailers, teasers, cinematics and gameplay).
 
 CONTRIBUTING
 By submitting any source code patches to Esenthel creator, you agree that they can be integrated
