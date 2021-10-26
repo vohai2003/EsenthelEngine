@@ -92,11 +92,10 @@ void Render()
       }break;
    }
 
-   // draw laser and electricity in RM_AMBIENT and RM_SOLID modes
+   // draw laser and electricity in RM_OPAQUE mode
    switch(Renderer())
    {
-      case RM_AMBIENT:
-      case RM_SOLID  :
+      case RM_OPAQUE:
       {
          // draw laser
          REPA(laser)

@@ -111,8 +111,8 @@ struct MeshGroup // Mesh Group (array of Meshes)
       void drawNormals  (  Flt    length   , C Color &face_color, C Color &vtx_color=TRANSPARENT, C Color &tangent_color=TRANSPARENT, C Color &binormal_color=TRANSPARENT)C; // draw 3D normals
    #endif
       // default drawing, automatically uses Frustum Culling, this doesn't draw the mesh immediately, instead it adds the mesh to a draw list
-      void draw(C MatrixM &matrix)C; // add mesh to draw list using 'matrix' matrix and no velocities, this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed: RM_EARLY_Z RM_OPAQUE RM_OPAQUE_M RM_AMBIENT RM_BLEND
-      void draw(                 )C; // add mesh to draw list using identity matrix and no velocities, this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed: RM_EARLY_Z RM_OPAQUE RM_OPAQUE_M RM_AMBIENT RM_BLEND
+      void draw(C MatrixM &matrix)C; // add mesh to draw list using 'matrix' matrix and no velocities, this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed: RM_EARLY_Z RM_OPAQUE RM_OPAQUE_M RM_EMISSIVE RM_BLEND
+      void draw(                 )C; // add mesh to draw list using identity matrix and no velocities, this should be called only in RM_PREPARE, when used it will automatically draw meshes in following modes when needed: RM_EARLY_Z RM_OPAQUE RM_OPAQUE_M RM_EMISSIVE RM_BLEND
 
       void drawShadow(C MatrixM &matrix)C; // add mesh to shadow draw list using 'matrix' matrix, this should be called only in RM_SHADOW
       void drawShadow(                 )C; // add mesh to shadow draw list using identity matrix, this should be called only in RM_SHADOW
