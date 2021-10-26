@@ -84,10 +84,10 @@ struct FastConnection // fast but unreliable UDP based connection, data is not g
    Bool create(C SockAddr &addr   ); // create using custom    address                                    , false on fail
 
    // get
-   Bool is      ()C {return _socket.is  ();} // get if            connection was created
-   Int  port    ()C {return _socket.port();} // get port at which connection was created
-   Long sent    ()C {return _sent         ;} // get total amount of sent     data
-   Long received()C {return _received     ;} // get total amount of received data
+   Bool is      ()C {return _socket.is       ();} // get if            connection was created
+   Int  port    ()C {return _socket.portLocal();} // get port at which connection was created
+   Long sent    ()C {return _sent              ;} // get total amount of sent     data
+   Long received()C {return _received          ;} // get total amount of received data
 
    // set
    Bool broadcast(Bool on) {return _socket.broadcast(on);} // set SO_BROADCAST option, false on fail, this allows sending data to all computers in local network by using 'SockAddr.setBroadcast' as 'send' address
@@ -121,11 +121,11 @@ struct ConnectionServer // connection server managing multiple client connection
    Bool create(C SockAddr &addr   ); // create server using custom    address, 'addr'=address on which the server should be created      , false on fail
 
    // get
-   Bool      is              ()C {return _server.is  ();} // if  server is created
-   Int       port            ()C {return _server.port();} // get server port
-   Str       localAddressName()C;                         // get server local  address using Computer Name format
-   SockAddr  localAddress    ()C;                         // get server local  address
-   SockAddr globalAddress    ()C;                         // get server global address
+   Bool      is              ()C {return _server.is       ();} // if  server is created
+   Int       port            ()C {return _server.portLocal();} // get server port
+   Str       localAddressName()C;                              // get server local  address using Computer Name format
+   SockAddr  localAddress    ()C;                              // get server local  address
+   SockAddr globalAddress    ()C;                              // get server global address
 
    // operations
    void update(); // update server, call this continuously to accept new clients and process existing ones

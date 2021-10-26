@@ -19,7 +19,8 @@ struct SockAddr // Socket Address
 
    // set
    SockAddr& clear       (                      ); // clear address to zero
-   Bool      setFrom     (C Socket &socket      ); // set   address from socket
+   Bool      setFromLocal(C Socket &socket      ); // set   address from socket local                   address
+   Bool      setFromDest (C Socket &socket      ); // set   address from socket target/destination/peer address
    SockAddr& setServer   (              Int port); // set   address to be used for creating a server
    SockAddr& setLocalFast(              Int port); // set   address to local host     (  fast "127.0.0.1"     IP will be used), this allows connections only within the same device
    SockAddr& setLocal    (              Int port); // set   address to local host     ( local                 IP will be used), this allows connections only within the same device and local network (connecting beyond local network depends if the local host is behind a router)
@@ -125,10 +126,11 @@ struct Socket
    Bool createUdp(C SockAddr &addr); // this method will call 'createUdp(Bool ipv6)' with 'ipv6' parameter set based on specified 'addr' address and Dual-Stack Socket availability in the Operating System
 
    // get
-   Bool     is  ()C {return _s!=NULL_SOCKET;} // if  socket is valid
-   Int      port()C;                          // get socket port
-   UInt     ip4 ()C;                          // get socket IPV4 address
-   SockAddr addr()C;                          // get socket      address
+   Bool     is       ()C {return _s!=NULL_SOCKET;} // if  socket is valid
+   Int      portLocal()C;                          // get socket local                   port
+   Int      portDest ()C;                          // get socket target/destination/peer port
+   SockAddr addrLocal()C;                          // get socket local                   address
+   SockAddr addrDest ()C;                          // get socket target/destination/peer address
 
    // set
    Bool block     (Bool on); // set blocking mode      , false on fail
