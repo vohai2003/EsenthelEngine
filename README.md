@@ -53,7 +53,7 @@ By submitting any source code patches to Esenthel creator, you agree that they c
 free of any charge into Esenthel Engine, and as part of the Engine be covered by this License.
 
 TERMINATION
-If you violate any terms of this agreement, or you engage in any patent litigation against Engine creator,
+If you violate any terms of this agreement, or engage in any patent litigation against Engine creator,
 then this License and access to Engine files will be terminated.
 
 NO WARRANTY
@@ -63,7 +63,7 @@ arising from the use of this software.
 
 THIRD PARTY LIBRARIES
 Esenthel Engine uses many third-party libraries located in "ThirdPartyLibs" folder, they're covered by
-their own licenses, majority are completely free to use, except the following which have some requirements:
+their own licenses, majority are completely free to use, except the following:
 Fraunhofer FDK AAC Sound Codec - please read its license carefully, it uses patented technology,
 do not use the AAC sound codec unless you have a patent license.
 Thank you to all of the third-party library developers!
