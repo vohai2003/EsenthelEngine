@@ -117,18 +117,18 @@ Bool Ftp::logIn(C Str8 &host, C Str8 &user, C Str8 &password, Bool ignore_auth_r
          Str8 cmd;
          switch(LogInSequence[0][i])
          {
-            case  0: cmd=S+"USER "+user    ; break;
-            case  1: cmd=S+"PASS "+password; break;
-            case  2: cmd=S+"ACCT "+account ; break;
-            case  3: cmd=S+"USER "+fw_user ; break;
-            case  4: cmd=S+"PASS "+fw_pass ; break;
-            case  5: cmd=S+"SITE "+host_port; break;
-            case  6: cmd=S+"USER "+user+'@'+host_port; break;
-            case  7: cmd=S+"OPEN "+host_port         ; break;
-            case  8: cmd=S+"USER "+fw_user +'@'+host_port            ; break;
-            case  9: cmd=S+"USER "+user    +'@'+host_port+' '+fw_user; break;
-            case 10: cmd=S+"USER "+user    +'@'+fw_user+'@'+host_port; break;
-            case 11: cmd=S+"PASS "+password+'@'+fw_pass              ; break;
+            case  0: cmd=S8+"USER "+user    ; break;
+            case  1: cmd=S8+"PASS "+password; break;
+            case  2: cmd=S8+"ACCT "+account ; break;
+            case  3: cmd=S8+"USER "+fw_user ; break;
+            case  4: cmd=S8+"PASS "+fw_pass ; break;
+            case  5: cmd=S8+"SITE "+host_port; break;
+            case  6: cmd=S8+"USER "+user+'@'+host_port; break;
+            case  7: cmd=S8+"OPEN "+host_port         ; break;
+            case  8: cmd=S8+"USER "+fw_user +'@'+host_port            ; break;
+            case  9: cmd=S8+"USER "+user    +'@'+host_port+' '+fw_user; break;
+            case 10: cmd=S8+"USER "+user    +'@'+fw_user+'@'+host_port; break;
+            case 11: cmd=S8+"PASS "+password+'@'+fw_pass              ; break;
          }
 
          // send command
@@ -236,7 +236,7 @@ Str8 Ftp::command(Str8 cmd)
   _abort=false;
    cmd+="\r\n";
    if(send(_socket, cmd(), cmd.length()))return response(_timeout ? 0 : FTP_WAIT_TIME);
-   return S;
+   return S8;
 }
 Bool Ftp::mode(Bool binary)
 {
@@ -252,7 +252,7 @@ Long Ftp::fileSize(C Str &file)
 {
    if(is())
    {
-      Str8 size=command(S+"SIZE "+UnixPathUTF8(file));
+      Str8 size=command(S8+"SIZE "+UnixPathUTF8(file));
       if(  size.length()>=5)return TextLong(size()+4);
    }
    return -1;
@@ -261,7 +261,7 @@ Bool Ftp::fileTime(C Str &file, DateTime &dt)
 {
    if(is())
    {
-      Str8 time=command(S+"MDTM "+UnixPathUTF8(file));
+      Str8 time=command(S8+"MDTM "+UnixPathUTF8(file));
       if(  time.length()>=18)
       {
          Char8   temp[5];
@@ -281,29 +281,29 @@ Bool Ftp::rename(C Str &src, C Str &dest)
 {
    if(is())
    {
-      if(    command(S+"RNFR "+UnixPathUTF8(src ).tailSlash(false)).first()=='3')
-      return command(S+"RNTO "+UnixPathUTF8(dest).tailSlash(false)).first()=='2';
+      if(    command(S8+"RNFR "+UnixPathUTF8(src ).tailSlash(false)).first()=='3')
+      return command(S8+"RNTO "+UnixPathUTF8(dest).tailSlash(false)).first()=='2';
    }
    return false;
 }
 Bool Ftp::removeFile(C Str &file)
 {
-   if(is())return command(S+"DELE "+UnixPathUTF8(file)).first()=='2';
+   if(is())return command(S8+"DELE "+UnixPathUTF8(file)).first()=='2';
            return false;
 }
 Bool Ftp::removeDir(C Str &dir)
 {
-   if(is())return command(S+"RMD "+UnixPathUTF8(dir).tailSlash(false)).first()=='2';
+   if(is())return command(S8+"RMD "+UnixPathUTF8(dir).tailSlash(false)).first()=='2';
            return false;
 }
 Bool Ftp::createDir(C Str &dir)
 {
-   if(is())return command(S+"MKD "+UnixPathUTF8(dir).tailSlash(false)).first()=='2';
+   if(is())return command(S8+"MKD "+UnixPathUTF8(dir).tailSlash(false)).first()=='2';
            return false;
 }
 Bool Ftp::changeDir(C Str &dir)
 {
-   if(is())return command(S+"CWD "+UnixPathUTF8(dir).tailSlash(false)).first()=='2';
+   if(is())return command(S8+"CWD "+UnixPathUTF8(dir).tailSlash(false)).first()=='2';
            return false;
 }
 /******************************************************************************/
@@ -312,6 +312,7 @@ Bool Ftp::connect(SecureSocket &transfer, C Str &ftp_file, CChar8 *cmd, Long off
    Str8 ftp_file8=UnixPathUTF8(ftp_file).tailSlash(false);
    if(passive)
    {
+   #if 0
          Str8    addr=command("PASV"); // sample reply: "227 Entering Passive Mode (174,142,230,146,135,63)\r\n"
       if(CChar8 *t   =TextPos(addr, '('))
       {
@@ -329,31 +330,62 @@ Bool Ftp::connect(SecureSocket &transfer, C Str &ftp_file, CChar8 *cmd, Long off
          if(transfer.connect  (addr)==Socket::CONNECTED)
          {
             // set offset
-            if(offset)if(!_abort && command(S+"REST "+offset).first()!='3')return false;
+            if(offset)if(!_abort && command(S8+"REST "+offset).first()!='3')return false;
 
             // initialize transfer
-            return !_abort && command(S+cmd+ftp_file8).first()=='1';
+            return !_abort && command(S8+cmd+ftp_file8).first()=='1';
          }
       }
+   #else
+      Str8 addr=command("EPSV"); // sample reply: "229 Extended Passive mode OK (|||34941|)\r\n"
+      if(  addr.first()=='2')
+      if(CChar8 *t=TextPos(addr, "(|||"))
+      {
+         CalcValue val; TextValue(t+4, val, false); if(val.type)
+         {
+            SockAddr addr;
+            if(addr.setFromDest(_socket))
+            if(transfer.createTcp(addr.port(val.asUInt())))
+            if(transfer.connect  (addr)==Socket::CONNECTED)
+            {
+               // set offset
+               if(offset)if(!_abort && command(S8+"REST "+offset).first()!='3')return false;
+
+               // initialize transfer
+               return !_abort && command(S8+cmd+ftp_file8).first()=='1';
+            }
+         }
+      }
+   #endif
    }else
    {
       // create server
-      Socket   server  ; server  .createTcp(GetDualStackSocket()); server.bind(SockAddr().setServer(0)); server.listen(); // creating an IPv6 socket when 'DualStackSocket' is not supported will result in FTP failing to connect (this was tested)
-      SockAddr ftp_addr; ftp_addr.setFrom  (_socket);
-      Int      port=server.port();
-
-      // connect
-      if(!_abort && command(Replace(S+"PORT "+ftp_addr.ip4Text()+','+(port>>8)+','+(port&0xFF), '.', ',')).first()=='2')
+      Socket   server  ;    server  .createTcp(GetDualStackSocket()); server.bind(SockAddr().setServer(0)); server.listen(); // creating an IPv6 socket when 'DualStackSocket' is not supported will result in FTP failing to connect (this was tested)
+      SockAddr ftp_addr; if(ftp_addr.setFromLocal(_socket))
       {
-         // set offset
-         if(offset)if(!_abort && command(S+"REST "+offset).first()!='3')return false;
+         Int port=server.portLocal();
 
-         // initialize transfer
-         if(!_abort && command(S+cmd+ftp_file8).first()=='1')
-            if(server.wait(FTP_WAIT_TIME)) // wait until connection arrives
+         Str8 addr_cmd;
+         if(ftp_addr.needsV6())addr_cmd=S8+"EPRT |2|"+ftp_addr.ip6Text()+'|'+port+'|';
+      #if 1
+         else                  addr_cmd=S8+"EPRT |1|"+ftp_addr.ip4Text()+'|'+port+'|';
+      #else
+         else                  addr_cmd=Replace(S8+"PORT "+ftp_addr.ip4Text()+','+(port>>8)+','+(port&0xFF), '.', ',');
+      #endif
+
+         // connect
+         if(!_abort && command(addr_cmd).first()=='2')
          {
-            SockAddr transfer_addr;
-            return server.accept(transfer, transfer_addr);
+            // set offset
+            if(offset)if(!_abort && command(S8+"REST "+offset).first()!='3')return false;
+
+            // initialize transfer
+            if(!_abort && command(S8+cmd+ftp_file8).first()=='1')
+               if(server.wait(FTP_WAIT_TIME)) // wait until connection arrives
+            {
+               SockAddr transfer_addr;
+               return server.accept(transfer, transfer_addr);
+            }
          }
       }
    }

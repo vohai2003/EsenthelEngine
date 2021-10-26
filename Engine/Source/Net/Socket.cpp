@@ -444,10 +444,15 @@ Str8 SockAddr::ipText()C
    return S;
 }
 /******************************************************************************/
-Bool SockAddr::setFrom(C Socket &socket)
+Bool SockAddr::setFromLocal(C Socket &socket)
 {
    socklen_t size=SIZE(_data);
    return getsockname(socket._s, (sockaddr*)&_data, &size)!=SOCKET_ERROR;
+}
+Bool SockAddr::setFromDest(C Socket &socket)
+{
+   socklen_t size=SIZE(_data);
+   return getpeername(socket._s, (sockaddr*)&_data, &size)!=SOCKET_ERROR;
 }
 SockAddr& SockAddr::setLocal(Int port)
 {
@@ -740,9 +745,10 @@ Bool Socket::createUdp(Bool ipv6) {del(); _s=socket(ipv6 ? AF_INET6 : AF_INET, S
 Bool Socket::createTcp(C SockAddr &addr) {return createTcp(DualStackSocket || addr.needsV6());}
 Bool Socket::createUdp(C SockAddr &addr) {return createUdp(DualStackSocket || addr.needsV6());}
 /******************************************************************************/
-Int      Socket::port()C {SockAddr addr; addr.setFrom(T); return addr.port();}
-UInt     Socket::ip4 ()C {SockAddr addr; addr.setFrom(T); return addr.ip4 ();}
-SockAddr Socket::addr()C {SockAddr addr; addr.setFrom(T); return addr       ;}
+Int      Socket::portLocal()C {SockAddr addr; addr.setFromLocal(T); return addr.port();}
+Int      Socket::portDest ()C {SockAddr addr; addr.setFromDest (T); return addr.port();}
+SockAddr Socket::addrLocal()C {SockAddr addr; addr.setFromLocal(T); return addr       ;}
+SockAddr Socket::addrDest ()C {SockAddr addr; addr.setFromDest (T); return addr       ;}
 /******************************************************************************/
 Bool Socket::block(Bool on)
 {
