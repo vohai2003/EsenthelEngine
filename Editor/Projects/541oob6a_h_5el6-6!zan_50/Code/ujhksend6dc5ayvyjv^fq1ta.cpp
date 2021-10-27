@@ -15,7 +15,7 @@ bool Init()
    logo=UID(1119600675, 1212460399, 80010661, 526665178);
 
    // create fading texture
-   fade_modifier.create2D(128, 128, IMAGE_A8, 1);
+   fade_modifier.mustCreate2D(128, 128, IMAGE_A8, 1);
    if(fade_modifier.lock())
    {
       REPD(x, fade_modifier.w())

@@ -6,7 +6,7 @@ Image image;
 /******************************************************************************/
 void SetNoise()
 {
-   image.create2D(Res, Res, IMAGE_L8, 1);
+   image.mustCreate2D(Res, Res, IMAGE_L8, 1);
    if(image.lock())
    {
       SimplexNoise noise=Seed; // initialize with custom seed

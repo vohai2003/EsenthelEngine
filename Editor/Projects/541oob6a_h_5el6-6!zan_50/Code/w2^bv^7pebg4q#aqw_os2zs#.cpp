@@ -9,7 +9,7 @@ class Player : Game.Chr
 
       // now the skeleton is animated with default character animations (walking, running, crouching, ..)
       // so after the basic animations we can optionally replace them with custom ones, for example attacking:
-      skel.animate(attack, true); // animate skeleton with 'attack' animation motion, 'true' for replace animation mode
+      skel.animateReplace(attack); // animate skeleton with 'attack' animation motion using replace mode
    }
 
    virtual bool update()

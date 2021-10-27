@@ -40,7 +40,7 @@ You can create your own game engines based on Esenthel, however they must clearl
 http://esenthel.com or https://github.com/Esenthel/EsenthelEngine and 15% of income generated from
 your engine and engine related services (including but not limited to: donations, license sales,
 adding features, providing support) must be shared with Esenthel Engine creator.
-However if Esenthel Engine creator dies without transferring copyrights to the Engine,
+However if Esenthel Engine creator dies without transferring Engine copyrights,
 then Engine enters the Public Domain, and can be used by anyone without any restrictions.
 
 SHARING

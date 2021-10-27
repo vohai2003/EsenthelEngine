@@ -24,7 +24,7 @@ bool Init()
 
    // set heightmap
    Image height;
-   height.createSoft(terrain_res, terrain_res, 1, IMAGE_F32);
+   height.mustCreateSoft(terrain_res, terrain_res, 1, IMAGE_F32);
    REPD(y, height.h())
    REPD(x, height.w())height.pixelF(x, y, Random(0, 10)); // random value from 0 to 10 meters
    height.blur(4, true); // blur the image

@@ -20,8 +20,6 @@ bool Init()
       moon.image=UID(1194910096, 1331950171, 278997914, 2918364784); // set image
       moon.pos =!Vec(-1, 1, 1);            // set custom position
       moon.size*=0.6;                      // decrease default size
-      moon.blend=false;                    // disable blending, and thus set adding mode
-      moon.image_color.set(64, 64, 64, 0); // set image color
       moon.light_color_l.zero();           // disable light casting
    }
 

@@ -1,6 +1,6 @@
 /******************************************************************************/
 Playlist  Battle     , // playlists
-          Explore    ;
+          Exploring  ;
 Sound     sound      ; // sound
 Slider    vol_fx     , // volume bars
           vol_music  ,
@@ -22,13 +22,13 @@ bool Init()
       Battle+=UID(179898080, 1327326228, 2705071249, 4171399536); // add "battle0" track to 'Battle' playlist
       Battle+=UID(746976398, 1110313615, 3079654847, 358289912);  // add "battle1" track to 'Battle' playlist
    }
-   if(!Explore.songs()) // create Explore playlist
+   if(!Exploring.songs()) // create Exploring playlist
    {
-      Explore+=UID(2222101198, 1138675473, 1518921890, 1804050639); // add "explore" track to 'Explore' playlist
+      Exploring+=UID(2222101198, 1138675473, 1518921890, 1804050639); // add "explore" track to 'Exploring' playlist
    }
 
-   Music  .play(Battle ); // play playlist as music
-   Ambient.play(Explore); // play playlist as ambient
+   Music  .play(Battle   ); // play playlist as music
+   Ambient.play(Exploring); // play playlist as ambient
    sound  .play(UID(96441856, 1299394573, 764242358, 3923793607), true); // play looped sound
 
    // create gui sliders

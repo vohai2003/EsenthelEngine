@@ -13,7 +13,7 @@
       using "Uploader" tool with following options:
          Http Directory: "http://www.esenthel.com/download/Patcher"
          Upload Name   : "Test"
-         Secure        :  null
+         Cipher        :  null
 
 /******************************************************************************/
 Patcher                 patcher; // define patcher object

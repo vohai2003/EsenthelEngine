@@ -13,8 +13,8 @@ bool Init()
       File file;
 
       // sample upload
-      file.read  ("c:/test.file");     // open file for reading
-      ftp .upload(file, "/test.file"); // upload "c:/test.file" to the FTP "/test.file"
+      file.mustRead("c:/test.file");     // open file for reading
+      ftp .upload  (file, "/test.file"); // upload "c:/test.file" to the FTP "/test.file"
 
       // sample download
       file.writeMem();                   // open file for writing to memory

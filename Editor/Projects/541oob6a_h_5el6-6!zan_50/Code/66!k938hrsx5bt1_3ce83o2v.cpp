@@ -10,7 +10,7 @@ class Obj
 
       Vec4 color(Random.vec(), 1); // create a random color
 
-      changes.New().set(Renderer.material_color) // create a new change and initialize it for changing the 'Material.color' shader parameter
+      changes.New().set(Renderer.material_color_l) // create a new change and initialize it for changing the 'Material.color' shader parameter
                    .set(color); // set its value
    }
    void draw()C

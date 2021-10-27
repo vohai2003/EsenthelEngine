@@ -13,7 +13,7 @@
       using "Uploader" tool with following options:
          Http Directory: "http://www.esenthel.com/download/Patcher"
          Upload Name   : "Test"
-         Secure        :  null
+         Cipher        :  null
 
 /******************************************************************************/
 const_mem_addr class PakFileDataEx : PakFileData
@@ -21,7 +21,7 @@ const_mem_addr class PakFileDataEx : PakFileData
    File file_data;
 }
 Patcher                 patcher; // define patcher object
-Str                     paks_dir="LocalData/Patch"; // define where we'll store pak files
+Str                     paks_dir="LocalData"; // define where we'll store pak files
 Memc<Patcher.LocalFile> local_files; // list of files currently present in pak files
 bool                    compared=false; // helper variable used to specify if we have compared local with server files
 Memx<PakFileDataEx>     update_files; // list of files to be updated in our paks
@@ -70,8 +70,8 @@ bool Update()
          // remove files
          REPA(local_remove)
          {
-            Patcher.LocalFile  &lf =local_files[local_remove[i]];
-            PakFileData        &pfd=update_files.New();
+            Patcher.LocalFile &lf =local_files[local_remove[i]];
+            PakFileData       &pfd=update_files.New();
             pfd.name           =lf.full_name;       // set file full name
             pfd.modify_time_utc=lf.modify_time_utc; // set file modification time
             pfd.mode           =(multiple_paks ? PakFileData.MARK_REMOVED : PakFileData.REMOVE); // remove the file
@@ -117,7 +117,7 @@ bool Update()
             // perform updating the "patch.pak"
             Str pak_name=paks_dir.tailSlash(true) + "patch.pak";
             Pak pak; pak.load(pak_name, null); // load current version
-            PakUpdate(pak, SCAST(Memx<PakFileData>, update_files), pak_name, null); // perform the update
+            PakUpdate(pak, SCAST(Memx<PakFileData>, update_files), pak_name); // perform the update
             update_files.del(); // clear the container so we won't process the files again
          }
          // paks are now updated
