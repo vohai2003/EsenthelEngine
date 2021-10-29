@@ -338,6 +338,7 @@ void DrawProject()
             }
             menu.checkKeyboardShortcuts(); // check these before other menus are checked, but check after keys above, because menu shortcuts operate on 'menu_list_sel'
          }
+         if(Gui.ms()==&sound_play)lit=elmToVis(Proj.findElm(sound_play.lit_id));
          UID lit_elm_id=UIDZero; if(ListElm *elm=litToListElm())if(elm->elm)lit_elm_id=elm->elm->id;
          if( lit_elm_id!=T.lit_elm_id)
          {
@@ -3345,7 +3346,6 @@ void DrawProject()
 
       // elm sound play
       {
-         if(Gui.ms()==&list.sound_play)list.lit=list.elmToVis(findElm(list.sound_play.lit_id));
          Elm *elm=list.visToElm(list.lit);
          if(  elm && (elm->type==ELM_SOUND || sound.playing()))
          {
