@@ -60,6 +60,10 @@ Bool Motion::updateAuto(Flt blend_in_speed, Flt blend_out_speed, Flt time_speed)
       }
    }else // if finished
    {
+      // prevent events at end of anim firing multiple times
+      time_prev =time;
+      time_delta=0;
+
          blend-=blend_out_speed*Time.d(); // blend out
       if(blend<=0) // if blended out
       {
@@ -89,6 +93,10 @@ Bool Motion::updateIn(Flt blend_in_speed, Flt time_speed)
 Bool Motion::updateOut(Flt blend_out_speed)
 {
    if(!is())return false; // return false if the motion isn't valid and can be deleted
+
+   // prevent events at end of anim firing multiple times
+   time_prev =time;
+   time_delta=0;
 
       blend-=blend_out_speed*Time.d(); // blend out
    if(blend<=0) // if blended out
