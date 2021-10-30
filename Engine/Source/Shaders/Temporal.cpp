@@ -914,16 +914,6 @@ void Temporal_PS
 
    // update flicker
    Half new_flicker;
- /*if(0) // simple
-   {
-      Half lum_old=Lum4(    old.rgb);
-      Half lum_cur=Lum4(    cur.rgb);
-      Half lum_min=Lum4(col_min.rgb);
-      Half lum_max=Lum4(col_max.rgb);
-      Half clamp_dist=Min(Abs(lum_old-lum_min), Abs(lum_old-lum_max))/Max(lum_old, lum_cur, HALF_MIN);
-    //clamp_dist*=clamp_dist;
-		blend*=Sat(clamp_dist*0.5);
-   }else*/
    if(DEPTH_FOREGROUND(nearest_depth_raw))
    {
       // calculate difference between 'old' and 'cur'
