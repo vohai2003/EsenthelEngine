@@ -19,6 +19,7 @@ MiscRegion Misc;
    void MiscRegion::ExportVS2015(MiscRegion &mr) {CodeEdit.Export(Edit::EXPORT_VS2015 );}
    void MiscRegion::ExportVS2017(MiscRegion &mr) {CodeEdit.Export(Edit::EXPORT_VS2017 );}
    void MiscRegion::ExportVS2019(MiscRegion &mr) {CodeEdit.Export(Edit::EXPORT_VS2019 );}
+   void MiscRegion::ExportVS2022(MiscRegion &mr) {CodeEdit.Export(Edit::EXPORT_VS2022 );}
    void MiscRegion::ExportAndroid(MiscRegion &mr) {CodeEdit.Export(Edit::EXPORT_ANDROID);}
    void MiscRegion::ExportAndroidData(MiscRegion &mr) {CodeEdit.Export(Edit::EXPORT_ANDROID, true);}
    void MiscRegion::ExportXcode(MiscRegion &mr) {CodeEdit.Export(Edit::EXPORT_XCODE  );}
@@ -200,6 +201,7 @@ MiscRegion Misc;
             Export.New().create("C++ with Visual Studio 2015 project"             , ExportVS2015       , T);
             Export.New().create("C++ with Visual Studio 2017 project"             , ExportVS2017       , T);
             Export.New().create("C++ with Visual Studio 2019 project"             , ExportVS2019       , T);
+            Export.New().create("C++ with Visual Studio 2022 project"             , ExportVS2022       , T);
             Export.New().create("C++ with Android project"                        , ExportAndroid      , T);
             Export.New().create("C++ with Android project and Project data"       , ExportAndroidData  , T);
             Export.New().create("C++ with Xcode project"                          , ExportXcode        , T);

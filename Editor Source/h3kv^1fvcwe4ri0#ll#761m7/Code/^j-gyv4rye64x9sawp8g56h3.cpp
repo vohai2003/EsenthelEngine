@@ -437,6 +437,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
             case Edit.EXPORT_VS2015:
             case Edit.EXPORT_VS2017:
             case Edit.EXPORT_VS2019:
+            case Edit.EXPORT_VS2022:
                exe=Edit.EXE_UWP; break;
          }
          if(exe>=0 && PublishDataNeeded(exe))StartPublish(S, exe, Edit.BUILD_PUBLISH, true);

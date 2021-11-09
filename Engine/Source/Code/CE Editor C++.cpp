@@ -1516,7 +1516,7 @@ Bool CodeEditor::generateVSProj(Int version)
          return true;
       }
    }else*/
-   if(version>=10 && version<=16) // #VisualStudio
+   if(version>=10 && version<=17) // #VisualStudio
    {
       XmlData xml, xml_f;
       if(!xml  .load(S+"Code/Windows/Project.vcxproj"        ))return ErrorRead(S+"Code/Windows/Project.vcxproj"        );
@@ -1639,7 +1639,8 @@ Bool CodeEditor::generateVSProj(Int version)
          if(version==12){platform_toolset="v120"; platform_toolset_xp="v120_xp";}else
          if(version==14){platform_toolset="v140"; platform_toolset_xp="v140_xp";}else
          if(version==15){platform_toolset="v141"; platform_toolset_xp="v141_xp";}else
-         if(version==16){platform_toolset="v142"; platform_toolset_xp="v141_xp";}     // VS 2019 uses v141_xp from VS 2017
+         if(version==16){platform_toolset="v142"; platform_toolset_xp="v141_xp";}else // VS 2019 uses v141_xp from VS 2017
+         if(version==17){platform_toolset="v143"; platform_toolset_xp="v141_xp";}     // VS 2022 uses v141_xp from VS 2017
 
          if(platform_toolset)
             for(Int i=0; XmlNode *prop=proj->findNode("PropertyGroup", i); i++)
@@ -2892,6 +2893,7 @@ Bool CodeEditor::Export(EXPORT_MODE mode, BUILD_MODE build_mode)
          if(devenv_version.x==14)mode=EXPORT_VS2015;else
          if(devenv_version.x==15)mode=EXPORT_VS2017;else
          if(devenv_version.x==16)mode=EXPORT_VS2019;else
+         if(devenv_version.x==17)mode=EXPORT_VS2022;else
             return false;
       }else
       if(mode==EXPORT_ANDROID       ){if(!verifyAndroid  ())return false;}else
@@ -2916,6 +2918,7 @@ Bool CodeEditor::Export(EXPORT_MODE mode, BUILD_MODE build_mode)
             if(mode==EXPORT_VS2015        )return generateVSProj     (14);
             if(mode==EXPORT_VS2017        )return generateVSProj     (15);
             if(mode==EXPORT_VS2019        )return generateVSProj     (16);
+            if(mode==EXPORT_VS2022        )return generateVSProj     (17);
             if(mode==EXPORT_XCODE         )return generateXcodeProj    ();
             if(mode==EXPORT_ANDROID       )return generateAndroidProj  ();
             if(mode==EXPORT_LINUX_MAKE    )return generateLinuxMakeProj();

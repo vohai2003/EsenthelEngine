@@ -29,6 +29,7 @@ class MiscRegion : Region
    static void ExportVS2015       (MiscRegion &mr);
    static void ExportVS2017       (MiscRegion &mr);
    static void ExportVS2019       (MiscRegion &mr);
+   static void ExportVS2022       (MiscRegion &mr);
    static void ExportAndroid      (MiscRegion &mr);
    static void ExportAndroidData  (MiscRegion &mr);
    static void ExportXcode        (MiscRegion &mr);

@@ -1944,12 +1944,12 @@ void CodeEditorInterface::activateApp   (Bool rebuild_3rd_party_headers)
 }
 /******************************************************************************/
 // #VisualStudio
-static CChar8 *SupportedVS="Following versions are supported:\nVisual Studio 2017 (at least version 15.5)\nVisual Studio 2019";
+static CChar8 *SupportedVS="Following versions are supported:\nVisual Studio 2017 (at least version 15.5)\nVisual Studio 2019\nVisual Studio 2022";
 Bool CheckVisualStudio(C VecI4 &vs_ver, Str *message, Bool check_minor)
 {
    if(vs_ver.x<=0){if(message)*message=S+"Visual Studio was not found.\n"+SupportedVS; return false;}
    if(vs_ver.x<15){if(message)*message=S+"Visual Studio version "+TextVer(vs_ver)+" is no longer supported.\n"+SupportedVS; return false;}
-   if(vs_ver.x>16){if(message)*message=S+"Visual Studio version "+TextVer(vs_ver)+" is not yet supported.\n"+SupportedVS; return false;}
+   if(vs_ver.x>17){if(message)*message=S+"Visual Studio version "+TextVer(vs_ver)+" is not yet supported.\n"+SupportedVS; return false;} // #VisualStudio
    if(check_minor)
    {
       if(vs_ver.x==15 && vs_ver.y>=0 && vs_ver.y<5){if(message)*message=S+"Visual Studio version "+TextVer(vs_ver)+" is not supported due to a bug in compiler.\n"+SupportedVS; return false;} // disable VS 2017 ver 15.0 .. 15.4

@@ -23,6 +23,7 @@ enum EXPORT_MODE : Byte // Export Mode
    EXPORT_VS2015        , // Export to Visual Studio 2015 project
    EXPORT_VS2017        , // Export to Visual Studio 2017 project
    EXPORT_VS2019        , // Export to Visual Studio 2019 project
+   EXPORT_VS2022        , // Export to Visual Studio 2022 project
    EXPORT_ANDROID       , // Export to Android            project
    EXPORT_XCODE         , // Export to Xcode              project
    EXPORT_LINUX_MAKE    , // Export to Linux              project to be compiled using 'make'
