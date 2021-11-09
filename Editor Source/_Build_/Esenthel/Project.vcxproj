@@ -78,7 +78,7 @@
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>Unicode</CharacterSet>
 		<WholeProgramOptimization>true</WholeProgramOptimization>
-		<PlatformToolset>v142</PlatformToolset>
+		<PlatformToolset>v143</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -86,25 +86,25 @@
 		<CharacterSet>Unicode</CharacterSet>
 		<WindowsAppContainer>true</WindowsAppContainer>
 		<AppContainerApplication>true</AppContainerApplication>
-		<PlatformToolset>v142</PlatformToolset>
+		<PlatformToolset>v143</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>Unicode</CharacterSet>
-		<PlatformToolset>v142</PlatformToolset>
+		<PlatformToolset>v143</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>Unicode</CharacterSet>
 		<WindowsAppContainer>true</WindowsAppContainer>
 		<AppContainerApplication>true</AppContainerApplication>
-		<PlatformToolset>v142</PlatformToolset>
+		<PlatformToolset>v143</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>Unicode</CharacterSet>
 		<WholeProgramOptimization>true</WholeProgramOptimization>
-		<PlatformToolset>v142</PlatformToolset>
+		<PlatformToolset>v143</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|NX64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -113,7 +113,7 @@
 		<NintendoSdkRoot>$(NINTENDO_SDK_ROOT)</NintendoSdkRoot>
 		<NintendoSdkSpec>NX</NintendoSdkSpec>
 		<NintendoSdkBuildType>Release</NintendoSdkBuildType>
-		<PlatformToolset>v142</PlatformToolset>
+		<PlatformToolset>v143</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -121,7 +121,7 @@
 		<CharacterSet>Unicode</CharacterSet>
 		<WindowsAppContainer>true</WindowsAppContainer>
 		<AppContainerApplication>true</AppContainerApplication>
-		<PlatformToolset>v142</PlatformToolset>
+		<PlatformToolset>v143</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|NX64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -132,7 +132,7 @@
 		<NintendoSdkRoot>$(NINTENDO_SDK_ROOT)</NintendoSdkRoot>
 		<NintendoSdkSpec>NX</NintendoSdkSpec>
 		<NintendoSdkBuildType>Release</NintendoSdkBuildType>
-		<PlatformToolset>v142</PlatformToolset>
+		<PlatformToolset>v143</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'" Label="Configuration">
 		<CharacterSet>NotSet</CharacterSet>
@@ -146,7 +146,7 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>Unicode</CharacterSet>
-		<PlatformToolset>v142</PlatformToolset>
+		<PlatformToolset>v143</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|NX64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -154,14 +154,14 @@
 		<NintendoSdkRoot>$(NINTENDO_SDK_ROOT)</NintendoSdkRoot>
 		<NintendoSdkSpec>NX</NintendoSdkSpec>
 		<NintendoSdkBuildType>Release</NintendoSdkBuildType>
-		<PlatformToolset>v142</PlatformToolset>
+		<PlatformToolset>v143</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>Unicode</CharacterSet>
 		<WindowsAppContainer>true</WindowsAppContainer>
 		<AppContainerApplication>true</AppContainerApplication>
-		<PlatformToolset>v142</PlatformToolset>
+		<PlatformToolset>v143</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|NX64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -171,7 +171,7 @@
 		<NintendoSdkRoot>$(NINTENDO_SDK_ROOT)</NintendoSdkRoot>
 		<NintendoSdkSpec>NX</NintendoSdkSpec>
 		<NintendoSdkBuildType>Release</NintendoSdkBuildType>
-		<PlatformToolset>v142</PlatformToolset>
+		<PlatformToolset>v143</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'" Label="Configuration">
 		<CharacterSet>NotSet</CharacterSet>
