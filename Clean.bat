@@ -49,9 +49,6 @@ rmdir /s /q "Editor Source\_Build_\Server"
 rmdir /s /q "Editor Source\_Build_\Uploader"
 rmdir /s /q "Editor Source\_Publish_"
 
-rmdir /s /q "_Projects\_Build_"
-rmdir /s /q "_Projects\_Publish_"
-
 rmdir /s /q "ThirdPartyLibs\Bullet\lib\build3\vs2010\.vs"
 rmdir /s /q "ThirdPartyLibs\De265\bin\.vs"
 rmdir /s /q "ThirdPartyLibs\Heif\bin\.vs"
@@ -61,5 +58,3 @@ rmdir /s /q "ThirdPartyLibs\Opus\Windows\.vs"
 rmdir /s /q "ThirdPartyLibs\QCMS\Windows\.vs"
 rmdir /s /q "ThirdPartyLibs\x265\lib\build\vc15-x86_64\.vs"
 rmdir /s /q "ThirdPartyLibs\Xml2\lib\win32\VC10\.vs"
-
-rmdir /s /q "..\Esenthel Website\download\Patcher\Esenthel"
