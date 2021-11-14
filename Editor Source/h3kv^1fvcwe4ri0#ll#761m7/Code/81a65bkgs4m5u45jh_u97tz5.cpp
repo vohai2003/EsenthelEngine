@@ -3850,7 +3850,7 @@ class ProjectEx : ProjectHierarchy
       editing(MtrlEdit.elm_id).editing(WaterMtrlEdit.elm_id).editing(PhysMtrlEdit.elm_id).editing(ObjEdit.obj_id).editing(WorldEdit.elm_id).editing(MiniMapEdit.elm_id).editing(EnvEdit.elm_id).editing(EnumEdit.elm_id).editing(ObjClassEdit.elm_id).editing(FontEdit.elm_id).editing(PanelImageEdit.elm_id).editing(TextStyleEdit.elm_id).editing(PanelEdit.elm_id).editing(GuiSkinEdit.elm_id).editing(GuiEdit.elm_id).editing(ImageEdit.elm_id).editing(ImageAtlasEdit.elm_id).editing(IconSettsEdit.elm_id).editing(IconEdit.elm_id).editing(SoundEdit.elm_id).editing(VideoEdit.elm_id).editing(AnimEdit.elm_id).editing(CodeEdit.sourceCurId(), true).editing(CodeEdit.sourceCurName()).editing(AppPropsEdit.elm_id); // after hierarchy
       if(filter().is())
       {
-         filter_is_id=filter_id.fromText(filter());
+         filter_is_id=(filter_id.fromText(filter()) && hasElm(filter_id)); // set as ID only if there's an element with that ID, this is needed when entering a single name of 24 char length, which is also a valid FileNameID, which would force looking for ID but we want just the long name
          filter_path.clear(); setFilter(root);
          filter_path.clear(); setFilter(CodeEdit.items);
       }else filter_is_id=false; // if there's no filter then clear 'filter_is_id' because some codes may check it without checking for "filter().is()"

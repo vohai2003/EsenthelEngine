@@ -1340,7 +1340,7 @@ class ImporterClass
             XAnimation &xanim=import.anims[i];
 
             // adjust name
-            if(!import.force_name.is() && import.anims.elms()==1 && (xanim.name=="Take 01" || xanim.name=="Take 001" || xanim.name=="Default Take" || xanim.name=="C4D Animation Take" || xanim.name=="mixamo.com" || xanim.name=="Unreal Take"))
+            if(!import.force_name.is() && import.anims.elms()==1 && (xanim.name=="Take 01" || xanim.name=="Take 001" || xanim.name=="Default Take" || xanim.name=="C4D Animation Take" || xanim.name=="mixamo.com" || xanim.name=="Unreal Take" || xanim.name=="Scene"))
             {
                import.force_name=Replace(GetBaseNoExt(import.file), '_', ' ');
                REPA(import.force_name)if(import.force_name[i]=='@') // check for unity style file names (one anim per file, name "take 01" or "take 001"), file name "Forest Wolf@Bite Attack.FBX"
