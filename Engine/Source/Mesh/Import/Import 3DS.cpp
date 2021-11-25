@@ -211,11 +211,11 @@ Bool Import3DS(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
 
             if(!mesh.vtx.nrm())
             {
-             C VecI *tri=mesh.tri.ind();
-               if(mesh.tri_smooth_groups.elms() && tri)
+               if(mesh.tri_smooth_groups.elms() && mesh.tri.ind())
                {
                   mesh.explodeVtxs(); // explode so each face has its unique vertexes, this is needed because in 3DS, 2 faces sharing the exact same vertex, can have different smoothing groups
                   mesh.include(VTX_MATERIAL); // for simplification, we're applying smoothing groups onto vertexes, no need to initially clear the vtx material because we've used 'explodeVtxs', making all tris have their own unique vertexes
+                C VecI *tri=mesh.tri.ind(); // !! SET AFTER 'explodeVtxs' in case that reallocates tri ind !!
                   REPA(mesh.tri) // iterate all faces
                   {
                      UInt group=mesh.tri_smooth_groups[i]; // get smoothing groups of that face

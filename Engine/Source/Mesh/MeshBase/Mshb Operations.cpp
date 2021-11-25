@@ -338,12 +338,12 @@ MeshBase& MeshBase::weldEdge()
 /******************************************************************************/
 MeshBase& MeshBase::explodeVtxs()
 {
-   MeshBase temp(edges()*2 + tris()*3 + quads()*4, edges(), tris(), quads(), flag()&~VTX_DUP);
+   MeshBase temp(edges()*2 + tris()*3 + quads()*4, 0, 0, 0, flag()&~VTX_DUP);
    Int v=0;
-   temp.copyEdges(T); FREPA(temp.edge){VecI2 &edge=temp.edge.ind(i); FREPA(edge){copyVtx(edge.c[i], temp, v); edge.c[i]=v++;}}
-   temp.copyTris (T); FREPA(temp.tri ){VecI  &tri =temp.tri .ind(i); FREPA(tri ){copyVtx(tri .c[i], temp, v); tri .c[i]=v++;}}
-   temp.copyQuads(T); FREPA(temp.quad){VecI4 &quad=temp.quad.ind(i); FREPA(quad){copyVtx(quad.c[i], temp, v); quad.c[i]=v++;}}
-   Swap(temp, T);
+   FREPA(edge){VecI2 &edge=T.edge.ind(i); FREPA(edge){Int &ind=edge.c[i]; copyVtx(ind, temp, v); ind=v++;}}
+   FREPA(tri ){VecI  &tri =T.tri .ind(i); FREPA(tri ){Int &ind=tri .c[i]; copyVtx(ind, temp, v); ind=v++;}}
+   FREPA(quad){VecI4 &quad=T.quad.ind(i); FREPA(quad){Int &ind=quad.c[i]; copyVtx(ind, temp, v); ind=v++;}}
+   Swap(temp.vtx, vtx);
    return T;
 }
 /******************************************************************************/
