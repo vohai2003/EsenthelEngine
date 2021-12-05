@@ -504,10 +504,10 @@ MaterialRegion MtrlEdit;
    void MaterialRegion::ResizeBase1_256x512(MaterialRegion &editor) {editor.resizeBase1(VecI2(256, 512));}
    void MaterialRegion::ResizeBase1_512x1024(MaterialRegion &editor) {editor.resizeBase1(VecI2(512, 1024));}
    void MaterialRegion::ResizeBase1_1024x2048(MaterialRegion &editor) {editor.resizeBase1(VecI2(1024, 2048));}
-   void MaterialRegion::ResizeBase1_Quarter(MaterialRegion &editor) {editor.resizeBase2(-2, true);}
-   void MaterialRegion::ResizeBase1_Half(MaterialRegion &editor) {editor.resizeBase2(-1, true);}
-   void MaterialRegion::ResizeBase1_Original(MaterialRegion &editor) {editor.resizeBase2( 0, true);}
-   void MaterialRegion::ResizeBase1_Double(MaterialRegion &editor) {editor.resizeBase2( 1, true);}
+   void MaterialRegion::ResizeBase1_Quarter(MaterialRegion &editor) {editor.resizeBase1(-2, true);}
+   void MaterialRegion::ResizeBase1_Half(MaterialRegion &editor) {editor.resizeBase1(-1, true);}
+   void MaterialRegion::ResizeBase1_Original(MaterialRegion &editor) {editor.resizeBase1( 0, true);}
+   void MaterialRegion::ResizeBase1_Double(MaterialRegion &editor) {editor.resizeBase1( 1, true);}
    void MaterialRegion::ResizeBase2_128(MaterialRegion &editor) {editor.resizeBase2(128);}
    void MaterialRegion::ResizeBase2_256(MaterialRegion &editor) {editor.resizeBase2(256);}
    void MaterialRegion::ResizeBase2_512(MaterialRegion &editor) {editor.resizeBase2(512);}

@@ -600,10 +600,10 @@ class MaterialRegion : Region
    static void ResizeBase1_512x1024 (MaterialRegion &editor) {editor.resizeBase1(VecI2(512, 1024));}
    static void ResizeBase1_1024x2048(MaterialRegion &editor) {editor.resizeBase1(VecI2(1024, 2048));}
 
-   static void ResizeBase1_Quarter (MaterialRegion &editor) {editor.resizeBase2(-2, true);}
-   static void ResizeBase1_Half    (MaterialRegion &editor) {editor.resizeBase2(-1, true);}
-   static void ResizeBase1_Original(MaterialRegion &editor) {editor.resizeBase2( 0, true);}
-   static void ResizeBase1_Double  (MaterialRegion &editor) {editor.resizeBase2( 1, true);}
+   static void ResizeBase1_Quarter (MaterialRegion &editor) {editor.resizeBase1(-2, true);}
+   static void ResizeBase1_Half    (MaterialRegion &editor) {editor.resizeBase1(-1, true);}
+   static void ResizeBase1_Original(MaterialRegion &editor) {editor.resizeBase1( 0, true);}
+   static void ResizeBase1_Double  (MaterialRegion &editor) {editor.resizeBase1( 1, true);}
    
    static void ResizeBase2_128 (MaterialRegion &editor) {editor.resizeBase2(128);}
    static void ResizeBase2_256 (MaterialRegion &editor) {editor.resizeBase2(256);}
