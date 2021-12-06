@@ -5435,7 +5435,7 @@ bool UpdateProject()
    // open element
    if(Kb.ctrl() && Ms.bp(0) && Gui.ms() && Gui.ms().type()==GO_TEXTLINE)
    {
-      Memc<Str > splits; Split(splits, Gui.ms().asTextLine()(), '|');
+      Memc<Str > splits; Split(splits, Gui.ms().asTextLine()(), '\n');
       Memc<Elm*> elms  ; FREPA(splits)if(Elm *elm=Proj.findElm(splits[i]))elms.add(elm);
       switch(elms.elms())
       {

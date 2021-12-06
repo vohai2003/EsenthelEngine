@@ -209,7 +209,7 @@ ObjClassEditor ObjClassEdit;
                {
                   Str text; if(multi_val)text=MultipleName;else FREP(src.IDs())
                   {
-                     if(i)text+='|';
+                     if(i)text+='\n';
                      bool valid; text+=Proj.idToText(src.asID(i), &valid); valid_value&=valid;
                   }
                   val_textline.set(text, QUIET);
@@ -1336,7 +1336,7 @@ ObjClassEditor ObjClassEdit;
       {
          if(src.val_textline().is())
          {
-            Memt<Str> splits; Split(splits, src.val_textline(), '|');
+            Memt<Str> splits; Split(splits, src.val_textline(), '\n');
             FREPA(splits)
             {
                UID id;

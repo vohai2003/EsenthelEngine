@@ -28,6 +28,8 @@ ASSERT(!FONT_SRGB); // right now IMAGE_R8G8/IMAGE_BC5 is used, which don't have 
 #define FONT_IMAGE_TYPE           (FONT_SRGB           ? IMAGE_R8G8/*_SRGB*/ : IMAGE_R8G8    )
 #define FONT_IMAGE_TYPE_SUB_PIXEL (FONT_SRGB_SUB_PIXEL ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8)
 
+#define TOTAL_CREATE_FONTS 2
+
 namespace EE{
 /******************************************************************************/
 #define CC4_FONT CC4('F','O','N','T')
@@ -611,6 +613,10 @@ struct SystemFont
       }
       return false;
    }
+   void includeChar(Char c)
+   {
+      supported_chars.add(c);
+   }
    void setBaseLine(Int base_line)
    {
       T.base_line=base_line;
@@ -630,6 +636,7 @@ struct SystemFont
          TEXTMETRIC metric; if(GetTextMetrics(dc, &metric))setBaseLine(metric.tmAscent);
 
          // supported chars
+         //alternative: WCHAR c=CharReturn; WORD id; Bool exists=(GetGlyphIndicesW(dc, &c, 1, &id, GGI_MARK_NONEXISTING_GLYPHS)!=GDI_ERROR && id!=0xFFFF);
          auto glyphs_size=GetFontUnicodeRanges(dc, null); if(glyphs_size>=SIZE(GLYPHSET))
          {
             Memt<Byte> temp; temp.setNum(glyphs_size);
@@ -646,6 +653,8 @@ struct SystemFont
                      dest.y=src.wcLow+src.cGlyphs-1; // -1 because y=inclusive
                   }else supported_chars.remove(i, true);
                }
+               if(system_font=="Segoe UI"
+               || system_font=="Tahoma")includeChar(CharReturn); // Even though "Segoe UI" and "Tahoma" by default report no support for CharReturn, in tests they do (at least on Win10), so force it, because it looks good
             }
          }
 
@@ -748,7 +757,7 @@ struct FontChar
 /******************************************************************************/
 struct FontCreateBase : Font::Params
 {
-   MemtN<SystemFont, 2> fonts;
+   MemtN<SystemFont, TOTAL_CREATE_FONTS> fonts;
 };
 #if USE_FREE_TYPE
 struct FreeTypeDrawContext
@@ -791,7 +800,7 @@ struct SystemFontDrawContext
    FontCreateBase *base=null;
    Image           image;
 #if USE_FREE_TYPE
-   MemtN<FreeTypeDrawContext, 2> fonts;
+   MemtN<FreeTypeDrawContext, TOTAL_CREATE_FONTS> fonts;
 #elif WINDOWS_OLD
    HDC     dc    =null;
    HBITMAP bitmap=null;
@@ -882,6 +891,7 @@ struct SystemFontDrawContext
    }
  C SystemFont* draw(Char chr, Int border)
    {
+      if(chr=='\n')chr=CharReturn;
     C SystemFont *font=&base->fonts.first(); if(!font->supportedChar(chr))for(Int i=1; i<base->fonts.elms(); i++)
       {
        C SystemFont &test=base->fonts[i]; if(test.supportedChar(chr)){font=&test; break;}
@@ -1039,7 +1049,7 @@ struct FontCreate : FontCreateBase
    {
       if(fonts.New().create(system_font, scaled_size, mode, weight))
       {// create alternatives in case primary font doesn't have needed characters
-         CChar8 *alternatives[]={"Segoe UI"};
+         CChar8 *alternatives[]={"Tahoma"}; ASSERT(ELMS(alternatives)+1==TOTAL_CREATE_FONTS);
          FREPA(  alternatives)if(!fonts.New().create(alternatives[i], scaled_size, mode, weight))fonts.removeLast();
          return true;
       }
