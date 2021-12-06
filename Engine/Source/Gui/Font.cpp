@@ -1049,7 +1049,7 @@ struct FontCreate : FontCreateBase
    {
       if(fonts.New().create(system_font, scaled_size, mode, weight))
       {// create alternatives in case primary font doesn't have needed characters
-         CChar8 *alternatives[]={"Tahoma"}; ASSERT(ELMS(alternatives)+1==TOTAL_CREATE_FONTS);
+         CChar8 *alternatives[]={"Tahoma"}; ASSERT(ELMS(alternatives)+1==TOTAL_CREATE_FONTS); // "Tahoma" was chosen because it has a nice version of '⏎'
          FREPA(  alternatives)if(!fonts.New().create(alternatives[i], scaled_size, mode, weight))fonts.removeLast();
          return true;
       }
