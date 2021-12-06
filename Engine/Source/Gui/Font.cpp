@@ -566,89 +566,121 @@ void Font::operator=(C Str &name)
 /******************************************************************************/
 struct SystemFont
 {
-   Int base_line;
+   Int size=0,
+       base_line=-1, // unknown
+       base_line_offset=0;
+#if WINDOWS_OLD
+   HFONT font=null;
+#endif
 #if USE_FREE_TYPE
    #if WINDOWS_OLD
       Mems<Byte> font_data;
-   #endif   
-   Font::MODE mode;
-   Int        size;
-   Str        system_font;
-#elif WINDOWS_OLD
-   HFONT font;
+   #elif LINUX
+      Str system_font;
+   #endif
 #elif MAC
-	NSFont                  *font;
-   NSMutableParagraphStyle *style;
-   NSMutableDictionary	   *attributes;
+	NSFont                  *font=null;
+   NSMutableParagraphStyle *style=null;
+   NSMutableDictionary     *attributes=null;
 #endif
+   Mems<VecUS2> supported_chars; // x=min, y=max, inclusive to allow supporting all 65536 characters in a single item x=0 y=65535, (if not inclusive then x=0 y=65536 would be out of U16 range)
 
   ~SystemFont() {del();}
-   SystemFont()
-   {
-      base_line=-1; // unknown
-   #if USE_FREE_TYPE
-      mode=Font::DEFAULT;
-      size=0;
-   #elif WINDOWS_OLD
-  		font=null;
-  	#elif MAC
-  	   attributes=null;
-  	   style     =null;
-  	   font      =null;
-   #endif
-   }
 
    void del()
    {
+   #if WINDOWS_OLD
+  		if(font){DeleteObject(font); font=null;}
+   #endif
    #if USE_FREE_TYPE
       #if WINDOWS_OLD
          font_data.del();
       #endif
-   #elif WINDOWS_OLD
-  		if(font){DeleteObject(font); font=null;}
   	#elif MAC
   	   [attributes release];   attributes=null;
   	   [style      release];   style     =null;
   	 /*[font       release];*/ font      =null; // font is not manually allocated
    #endif
    }
-   Bool createFont(Str system_font, Int size, Font::MODE mode, Flt weight)
+   Bool supportedChar(Char c)C
+   {
+      if( !supported_chars.elms())return true; // if unknown supported characters then assume all are supported
+      REPA(supported_chars)
+      {
+       C auto &range=supported_chars[i]; if(Unsigned(c)>=range.x && Unsigned(c)<=range.y)return true;
+      }
+      return false;
+   }
+   void setBaseLine(Int base_line)
+   {
+      T.base_line=base_line;
+        base_line_offset=((base_line>=0) ? Round(0.8f*size-base_line) : 0); // 0.8 is the default baseline (was 80 when measured on Arial 100)
+   }
+   Bool create(C Str &system_font, Int size, Font::MODE mode, Flt weight)
    {
       del();
-   #if USE_FREE_TYPE
-      #if WINDOWS_OLD
-         if(HFONT font=CreateFont(size, 0, 0, 0, RoundU(Sat(weight)*1000), 0, 0, 0, ANSI_CHARSET, 0, 0, (mode==Font::DEFAULT) ? ANTIALIASED_QUALITY : CLEARTYPE_QUALITY, 0, system_font))
+   #if WINDOWS_OLD
+      if(font=CreateFont(size, 0, 0, 0, RoundU(Sat(weight)*1000), 0, 0, 0, ANSI_CHARSET, 0, 0, (mode==Font::DEFAULT) ? ANTIALIASED_QUALITY : CLEARTYPE_QUALITY, 0, system_font))
+         if(HDC dc=CreateCompatibleDC(null))
+      {
+         T.size=size;
+         SelectObject(dc, font);
+
+         // base line
+         TEXTMETRIC metric; if(GetTextMetrics(dc, &metric))setBaseLine(metric.tmAscent);
+
+         // supported chars
+         auto glyphs_size=GetFontUnicodeRanges(dc, null); if(glyphs_size>=SIZE(GLYPHSET))
          {
-            if(HDC hdc=CreateCompatibleDC(null))
+            Memt<Byte> temp; temp.setNum(glyphs_size);
+            GLYPHSET *glyphs=(GLYPHSET*)temp.data();
+            if(temp.elms()==GetFontUnicodeRanges(dc, glyphs))
             {
-               SelectObject(hdc, font);
-               Int size=GetFontData(hdc, 0, 0, null, 0);
-               if( size>0)
+               supported_chars.setNum(glyphs->cRanges); REPA(supported_chars)
                {
-                  font_data.setNum(size);
-                  if(GetFontData(hdc, 0, 0, font_data.data(), font_data.elms())!=font_data.elms())font_data.del();
+                C auto &src=glyphs->ranges[i];
+                  if(src.cGlyphs>0)
+                  {
+                     auto &dest=supported_chars[i];
+                     dest.x=src.wcLow;
+                     dest.y=src.wcLow+src.cGlyphs-1; // -1 because y=inclusive
+                  }else supported_chars.remove(i, true);
                }
-               DeleteDC(hdc);
             }
-            DeleteObject(font);
          }
-      #elif LINUX
-         if(GetBase(system_font)==system_font) // not path
+
+      #if USE_FREE_TYPE
+         auto font_data_size=GetFontData(dc, 0, 0, null, 0);
+         if(  font_data_size>0)
          {
-            ConsoleProcess cp; if(cp.create("fc-match", S+"-v \""+system_font+'"')) // use FontConfig fc-match tool to get the font file name, "-v" needed to get full "file" path
-            {
-               cp.wait(1000);
-               Str path=StrInside(cp.get(), "file: \"", "\"");
-               if(path.is())system_font=path;
-            }
+            font_data.setNum(font_data_size);
+            if(GetFontData(dc, 0, 0, font_data.data(), font_data.elms())!=font_data.elms())font_data.del();
          }
       #endif
+
+         DeleteDC(dc);
+
+      #if USE_FREE_TYPE
+         if(!font_data.elms())goto error;
+      #endif
+
+         return true;
+      }
+   #elif USE_FREE_TYPE
+      T.size=size;
+   #if LINUX
       T.system_font=system_font;
-      T.mode       =mode;
-      T.size       =size;
+      if(GetBase(T.system_font)==T.system_font) // not path
+      {
+         ConsoleProcess cp; if(cp.create("fc-match", S+"-v \""+T.system_font+'"')) // use FontConfig fc-match tool to get the font file name, "-v" needed to get full "file" path
+         {
+            cp.wait(1000);
+            Str path=StrInside(cp.get(), "file: \"", "\"");
+            if(path.is())T.system_font=path;
+         }
+      }
+   #endif
       return true;
-   #elif WINDOWS_OLD
-      if(font=CreateFont(size, 0, 0, 0, RoundU(Sat(weight)*1000), 0, 0, 0, ANSI_CHARSET, 0, 0, (mode==Font::DEFAULT) ? ANTIALIASED_QUALITY : CLEARTYPE_QUALITY, 0, system_font))return true;
    #elif MAC
       Flt font_size=size*(64.0f/72); // to match Windows size
       if(NSStringAuto family=system_font)
@@ -661,44 +693,121 @@ struct SystemFont
       if(style=[[NSMutableParagraphStyle alloc] init])
       if(attributes=[[NSMutableDictionary alloc] init])
       {
-         base_line=Round(font.ascender*size/(font.ascender-font.descender)); // 'descender' is negative
          [style setAlignment:NSCenterTextAlignment];
          [attributes setObject:font forKey:NSFontAttributeName];
          [attributes setObject:style forKey:NSParagraphStyleAttributeName];
          [attributes setObject:[NSColor whiteColor] forKey:NSForegroundColorAttributeName];
+         T.size=size; setBaseLine(Round(font.ascender*size/(font.ascender-font.descender))); // 'descender' is negative
          return true;
       }
    #endif
-   	return false;
+
+#if WINDOWS_OLD && USE_FREE_TYPE
+   error:
+#endif
+      del(); return false;
    }
 };
 /******************************************************************************/
+struct FontChar
+{
+   Char  chr='\0';
+   VecI2 ofs=0, size=0; // these are unaffected by shadow padding
+   Byte  widths[2][FONT_WIDTH_TEST];
+   Image image;
+
+   void setSpace(Int size)
+   {
+      T.chr=' ';
+      T.ofs=0;
+      T.size.set(DivRound(size, 4), 0);
+      Zero(widths);
+      image.del();
+   }
+   void setFullSpace(Int size)
+   {
+      T.chr=FullWidthSpace;
+      T.ofs=0;
+      T.size.set(DivRound(size, 2), 0);
+      Zero(widths);
+      image.del();
+   }
+   void setTab(Int size)
+   {
+      T.chr='\t';
+      T.ofs=0;
+      T.size.set(DivRound(size, 4)*3, 0); // make tab 3x wider than space
+      Zero(widths);
+      image.del();
+   }
+
+   static Int Compare(C FontChar &a, C FontChar &b) {return ::Compare(a.image.h(), b.image.h());}
+
+   FontChar() {Zero(widths);} // Zero (for example required for spaces)
+};
+/******************************************************************************/
+struct FontCreateBase : Font::Params
+{
+   MemtN<SystemFont, 2> fonts;
+};
+#if USE_FREE_TYPE
+struct FreeTypeDrawContext
+{
+   FT_Library library=null; // 'library' is not multi-thread safe so keep it in separate contexts
+   FT_Face    face   =null;
+
+  ~FreeTypeDrawContext()
+   {
+      if(face   ){FT_Done_Face    (face   ); face   =null;}
+      if(library){FT_Done_FreeType(library); library=null;}
+   }
+   Bool create(SystemFont &font)
+   {
+      if(!FT_Init_FreeType(&library))
+      {
+         FT_Library_SetLcdFilter(library, FT_LCD_FILTER_DEFAULT);
+      #if WINDOWS_OLD
+         if(!FT_New_Memory_Face(library, font.font_data.data(), font.font_data.elms(), 0, &face))
+      #else
+         if(!FT_New_Face(library, UnixPathUTF8(font.system_font), 0, &face))
+      #endif
+      #if 0 // in this version scale must be applied to match Windows Size, but prefer other version to have more precision
+         if(!FT_Set_Pixel_Sizes(face, 0, font.size*64/72))
+      #else // this gives same result as Windows
+         if(!FT_Set_Char_Size(face, 0, font.size*64, 0, 64))
+      #endif
+         {
+            // ok
+            font.setBaseLine(DivRound(face->ascender*font.size, face->height));
+            return true;
+         }
+      }
+      return false;
+   }
+};
+#endif
 struct SystemFontDrawContext
 {
-   SystemFont *font;
-   Image       image;
+   FontCreateBase *base=null;
+   Image           image;
 #if USE_FREE_TYPE
-   FT_Library  library; // 'library' is not multi-thread safe so keep it in separate contexts
-   FT_Face     face;
+   MemtN<FreeTypeDrawContext, 2> fonts;
 #elif WINDOWS_OLD
-   HDC         main, dc;
-   HBITMAP     bitmap;
-   VecB4      *data;
+   HDC     dc    =null;
+   HBITMAP bitmap=null;
+   VecB4  *data  =null;
 #elif MAC
 	Image              bitmap_image;
-   NSBitmapImageRep  *bitmap;
-   NSGraphicsContext *context;
+   NSBitmapImageRep  *bitmap =null;
+   NSGraphicsContext *context=null;
 #endif
 
   ~SystemFontDrawContext()
    {
    #if USE_FREE_TYPE
-      if(face   ){FT_Done_Face    (face   ); face   =null;}
-      if(library){FT_Done_FreeType(library); library=null;}
    #elif WINDOWS_OLD
-      if(bitmap){DeleteObject(bitmap    ); bitmap=null;}
-      if(dc    ){DeleteDC    (dc        ); dc    =null;}
-      if(main  ){ReleaseDC   (null, main); main  =null;}
+      if(bitmap){DeleteObject(bitmap); bitmap=null;}
+      if(dc    ){DeleteDC    (dc    ); dc    =null;}
    #elif MAC
       if(context)
       {
@@ -710,78 +819,41 @@ struct SystemFontDrawContext
       [bitmap release]; bitmap=null;
    #endif
    }
-   SystemFontDrawContext()
+   Bool create(Int w, Int h, FontCreateBase &base)
    {
-      font=null;
-   #if USE_FREE_TYPE
-      library=null;
-      face   =null;
-   #elif WINDOWS_OLD
-      main  =             GetDC(null);
-      dc    =CreateCompatibleDC(main);
-      bitmap=null;
-      data  =null;
-   #elif MAC
-      context=null;
-      bitmap =null;
-   #endif
-   }
-   void createIfEmpty(Int w, Int h, SystemFont &font)
-   {
-      T.font=&font;
-   #if USE_FREE_TYPE
-      if(!image.is())
+      if(image.createSoftTry(w, h, 1, IMAGE_R8G8B8A8))
       {
-         image.mustCreateSoft(w, h, 1, IMAGE_R8G8B8A8);
-         if(!FT_Init_FreeType(&library))
+         T.base=&base;
+      #if USE_FREE_TYPE
+         fonts.setNum(base.fonts.elms()); FREPA(fonts)if(!fonts[i].create(base.fonts[i]))return false;
+         return true;
+      #elif WINDOWS_OLD
+         if(dc=CreateCompatibleDC(null))
          {
-            FT_Library_SetLcdFilter(library, FT_LCD_FILTER_DEFAULT);
-         #if WINDOWS_OLD
-            if(!FT_New_Memory_Face(library, font.font_data.data(), font.font_data.elms(), 0, &face))
-         #else
-            if(!FT_New_Face(library, UnixPathUTF8(font.system_font), 0, &face))
-         #endif
-         #if 0 // in this version scale must be applied to match Windows Size, but prefer other version to have more precision
-            if(!FT_Set_Pixel_Sizes(face, 0, font.size*64/72))
-         #else // this gives same result as Windows
-            if(!FT_Set_Char_Size(face, 0, font.size*64, 0, 64))
-         #endif
+            BITMAPV5HEADER bi; Zero(bi);
+            bi.bV5Size    =SIZE(bi);
+            bi.bV5Width   =w;
+            bi.bV5Height  =h;
+            bi.bV5Planes  =1;
+            bi.bV5BitCount=32;
+            bi.bV5Compression=BI_BITFIELDS;
+            bi.bV5RedMask  =0x000000FF;
+            bi.bV5GreenMask=0x0000FF00;
+            bi.bV5BlueMask =0x00FF0000;
+            bi.bV5AlphaMask=0xFF000000;
+
+            if(bitmap=CreateDIBSection(null, (BITMAPINFO*)&bi, DIB_RGB_COLORS, (Ptr*)&data, null, 0))
             {
-               // ok
-               AtomicSet(font.base_line, DivRound(face->ascender*font.size, face->height));
+               SelectObject(dc, bitmap);
+               SetTextColor(dc, 0xFFFFFF); // RGB(255, 255, 255)    which was manually undefined in the headers
+               SetBkMode   (dc, 1); // 1 is macro for 'TRANSPARENT' which was manually undefined in the headers
+               SetTextAlign(dc, TA_CENTER|TA_TOP|TA_NOUPDATECP);
+
+               return true;
             }
          }
-      }
-   #elif WINDOWS_OLD
-      if(!bitmap)
-      {
-         image.mustCreateSoft(w, h, 1, IMAGE_R8G8B8A8);
-
-         BITMAPV5HEADER bi; Zero(bi);
-         bi.bV5Size    =SIZE(bi);
-         bi.bV5Width   =w;
-         bi.bV5Height  =h;
-         bi.bV5Planes  =1;
-         bi.bV5BitCount=32;
-         bi.bV5Compression=BI_BITFIELDS;
-         bi.bV5RedMask  =0x000000FF;
-         bi.bV5GreenMask=0x0000FF00;
-         bi.bV5BlueMask =0x00FF0000;
-         bi.bV5AlphaMask=0xFF000000;
-
-         bitmap=CreateDIBSection(null, (BITMAPINFO*)&bi, DIB_RGB_COLORS, (Ptr*)&data, null, 0);
-         SelectObject(dc, bitmap);
-         SelectObject(dc, font.font);
-
-         TEXTMETRIC metric; GetTextMetrics(dc, &metric);
-         AtomicSet(font.base_line, metric.tmAscent);
-      }
-   #elif MAC
-      if(!context)
-      {
-         if(!image       .is())       image.mustCreateSoft(w, h, 1, IMAGE_R8G8B8A8);
-         if(!bitmap_image.is())bitmap_image.mustCreateSoft(w, h, 1, IMAGE_R8G8B8A8);
-         if(!bitmap)
+      #elif MAC
+         if(bitmap_image.createSoftTry(w, h, 1, IMAGE_R8G8B8A8))
          {
             unsigned char *image_data=bitmap_image.data();
             bitmap=[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&image_data
@@ -794,27 +866,33 @@ struct SystemFontDrawContext
                                                        colorSpaceName:NSCalibratedRGBColorSpace
                                                           bytesPerRow:bitmap_image.pitch()
                                                          bitsPerPixel:bitmap_image.hwTypeInfo().bit_pp];
-         }
-         if(!context)
-         {
-            SyncLocker locker(D._lock);
-            if(context=[NSGraphicsContext graphicsContextWithBitmapImageRep:bitmap])
             {
-   	         [NSGraphicsContext saveGraphicsState];
-   	         [NSGraphicsContext setCurrentContext:context];
-   	      }
+               SyncLocker locker(D._lock);
+               if(context=[NSGraphicsContext graphicsContextWithBitmapImageRep:bitmap])
+               {
+   	            [NSGraphicsContext saveGraphicsState];
+   	            [NSGraphicsContext setCurrentContext:context];
+                  return true;
+   	         }
+            }
          }
+      #endif
       }
-   #endif
+      return false;
    }
-   void draw(Char chr, Int border)
+ C SystemFont* draw(Char chr, Int border)
    {
+    C SystemFont *font=&base->fonts.first(); if(!font->supportedChar(chr))for(Int i=1; i<base->fonts.elms(); i++)
+      {
+       C SystemFont &test=base->fonts[i]; if(test.supportedChar(chr)){font=&test; break;}
+      }
    #if USE_FREE_TYPE
       image.clear();
+    C auto face=T.fonts[base->fonts.index(font)].face;
       if(FT_UInt glyph_index=FT_Get_Char_Index(face, chr))
       {
          if(!FT_Load_Glyph  (face, glyph_index, FT_LOAD_DEFAULT))
-         if(!FT_Render_Glyph(face->glyph, (font->mode==Font::SUB_PIXEL) ? FT_RENDER_MODE_LCD : FT_RENDER_MODE_NORMAL))
+         if(!FT_Render_Glyph(face->glyph, (base->mode==Font::SUB_PIXEL) ? FT_RENDER_MODE_LCD : FT_RENDER_MODE_NORMAL))
          {
             FT_Bitmap &bitmap=face->glyph->bitmap;
             Int        left  =face->glyph->bitmap_left,
@@ -848,10 +926,8 @@ struct SystemFontDrawContext
       }
    #elif WINDOWS_OLD
       // draw the character
-      ZeroN       (data, image.w()*image.h()); // RECT rect; rect.left=0; rect.top=0; rect.right=size_x; rect.bottom=size_y; FillRect(dc, &rect, HBRUSH(GetStockObject(BLACK_BRUSH)));
-      SetTextColor(dc, 0xFFFFFF); // RGB(255, 255, 255)    which was manually undefined in the headers
-      SetBkMode   (dc, 1); // 1 is macro for 'TRANSPARENT' which was manually undefined in the headers
-      SetTextAlign(dc, TA_CENTER|TA_TOP|TA_NOUPDATECP);
+      ZeroN(data, image.w()*image.h()); // RECT rect; rect.left=0; rect.top=0; rect.right=size_x; rect.bottom=size_y; FillRect(dc, &rect, HBRUSH(GetStockObject(BLACK_BRUSH)));
+      SelectObject(dc, font->font);
       if(chr==u'ำ') // this character needs to be split in 2, because {Nbsp, u'ำ'} still draw a circle
       {
          wchar_t wc[]={Nbsp, u'ํ', u'า'};
@@ -869,13 +945,14 @@ struct SystemFontDrawContext
       bitmap_image.clear();
 	   if(NSStringAuto str=chr)
 	   {
-         NSPoint p; p.x=border; p.y=border; [str() drawAtPoint:p withAttributes:font->attributes];
+         NSPoint p; p.x=border; p.y=border; [str() drawAtPoint:p withAttributes:font->font->attributes];
          [context flushGraphics];
       }
 
       // copy Bitmap to Image
       REPD(y, image.h())CopyFast(image.data()+image.pitch()*y, bitmap_image.data()+bitmap_image.pitch()*y, image.pitch());
    #endif
+      return font;
    }
 };
 /******************************************************************************/
@@ -893,53 +970,16 @@ static struct WinGDIGammaCreate
 }WinGDIGammaCreator;
 #endif
 
-struct FontChar
-{
-   Char  chr;
-   VecI2 ofs, size; // these are unaffected by shadow padding
-   Byte  widths[2][FONT_WIDTH_TEST];
-   Image image;
-
-   void setSpace(Int size)
-   {
-      T.chr=' ';
-      T.ofs=0;
-      T.size.set(DivRound(size, 4), 0);
-      Zero(widths);
-      image.del();
-   }
-   void setFullSpace(Int size)
-   {
-      T.chr=FullWidthSpace;
-      T.ofs=0;
-      T.size.set(DivRound(size, 2), 0);
-      Zero(widths);
-      image.del();
-   }
-   void setTab(Int size)
-   {
-      T.chr='\t';
-      T.ofs=0;
-      T.size.set(DivRound(size, 4)*3, 0); // make tab 3x wider than space
-      Zero(widths);
-      image.del();
-   }
-
-   static Int Compare(C FontChar &a, C FontChar &b) {return ::Compare(a.image.h(), b.image.h());}
-
-   FontChar() {chr='\0'; ofs=size=0; Zero(widths);} // Zero (for example required for spaces)
-};
-struct FontCreate : Font::Params
+struct FontCreate : FontCreateBase
 {
    Int                              scaled_size, draw_border, char_border, padd_ul, padd_dr, shadow_blur, shadow_offset;
    VecI2                            draw_size; // size of the buffer used for drawing
    Memc<FontChar>                   chars; // chars to create
    Int                              processed;   Int leftToProcess()C {return Max(0, chars.elms()-processed-SPECIAL_CHARS);} // skip special chars
    IMAGE_TYPE                       imageTypeTemp()C {return (mode==Font::SUB_PIXEL) ? FONT_IMAGE_TYPE_SUB_PIXEL : FONT_IMAGE_TYPE;}
-   SystemFont                       font;
    MemtN<SystemFontDrawContext, 16> dcs;
 
-   FontCreate(C Params &src) : Params(src)
+   FontCreate(C Params &src) : FontCreateBase(src)
    {
       char_border=4;
 
@@ -997,11 +1037,21 @@ struct FontCreate : Font::Params
    }
    Bool createFont()
    {
-      return font.createFont(system_font, scaled_size, mode, weight);
+      if(fonts.New().create(system_font, scaled_size, mode, weight))
+      {// create alternatives in case primary font doesn't have needed characters
+         CChar8 *alternatives[]={"Segoe UI"};
+         FREPA(  alternatives)if(!fonts.New().create(alternatives[i], scaled_size, mode, weight))fonts.removeLast();
+         return true;
+      }
+      return false;
+   }
+   Bool createDrawContexts()
+   {
+      dcs.setNum(Cpu.threads()); FREPA(dcs)if(!dcs[i].create(draw_size.x, draw_size.y, T))return false;
+      return true;
    }
    Bool drawCharacters()
    {
-      dcs.setNum(Cpu.threads());
       MultiThreadedCall(chars, FontCreate::DrawCharacter, T, dcs.elms());
       return true;
    }
@@ -1014,8 +1064,7 @@ struct FontCreate : Font::Params
 
    void drawCharacter(FontChar &fc, SystemFontDrawContext &dc)
    {
-      dc.createIfEmpty(draw_size.x, draw_size.y, font);
-      dc.draw(fc.chr, draw_border);
+    C SystemFont *font=dc.draw(fc.chr, draw_border);
    #if TEST_FONT
       if(fc.chr>='a' && fc.chr<='z'
       || fc.chr>='A' && fc.chr<='Z'
@@ -1089,6 +1138,7 @@ struct FontCreate : Font::Params
             img._type=img._hw_type=FONT_IMAGE_TYPE; // convert L8A8 -> R8G8
          }
       }
+      if(font)fc.ofs.y+=font->base_line_offset;
    }
    Bool clean()
    {
@@ -1115,9 +1165,6 @@ struct FontCreate : Font::Params
       font._padd.z=font._padd.w=T.padd_dr;
       font._chrs.setNumZero(T.chars.elms());
 
-      Int offset=-draw_border;
-      if(T.font.base_line>=0)offset+=Round(0.8f*size-T.font.base_line); // 0.8 is the default baseline (was 80 when measured on Arial 100)
-
       // set characters
       REPA(font._chrs)
       {
@@ -1128,7 +1175,7 @@ struct FontCreate : Font::Params
               dest.chr   =src.chr   ;
               dest.width =src.size.x; dest. width_padd=Min(dest.width +font.paddingL()+font.paddingR(), 255);
               dest.height=src.size.y; dest.height_padd=Min(dest.height+font.paddingT()+font.paddingB(), 255);
-              dest.offset=Mid(src.ofs.y+offset, 0, 255); // use 'Mid' because we're storing as Byte
+              dest.offset=Mid(src.ofs.y-draw_border, 0, 255); // use 'Mid' because we're storing as Byte
          Copy(dest.widths, src.widths);
       }
       return true;
@@ -1227,6 +1274,7 @@ Bool Font::create(C Params &params)
    SyncUnlocker locker(D._lock); // if this is called in 'Draw' then 'D._lock' is already locked, however multi-threaded font creation may want to lock 'D._lock' resulting in deadlock, therefore we need to first unlock it
    FontCreate fc(params);
    if(fc.createFont())
+   if(fc.createDrawContexts())
    if(fc.drawCharacters())
    if(fc.clean())
    if(fc.prepareFont(T))
