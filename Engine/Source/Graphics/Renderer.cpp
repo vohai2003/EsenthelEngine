@@ -914,6 +914,7 @@ Bool RendererClass::reflection()
       auto hp_col_rt      =D.highPrecColRT    ();                     D._hp_col_rt      =false             ;
       auto hp_nrm_rt      =D.highPrecNrmRT    ();                     D._hp_nrm_rt      =false             ;
       auto hp_lum_rt      =D.highPrecLumRT    ();                     D._hp_lum_rt      =false             ;
+      auto hp_pal_rt      =D.highPrecPalRT    ();                     D._hp_pal_rt      =false             ;
       auto lit_col_rt_prec=D.litColRTPrecision();                     D._lit_col_rt_prec=IMAGE_PRECISION_8 ;
       auto eye_adapt      =D.eyeAdaptation    ();                     D.eyeAdaptation   (false            );
       auto tone_map       =D.toneMap          ();                     D.toneMap         (TONE_MAP_OFF     );
@@ -955,6 +956,7 @@ Bool RendererClass::reflection()
       D._hp_col_rt      =hp_col_rt      ;
       D._hp_nrm_rt      =hp_nrm_rt      ;
       D._hp_lum_rt      =hp_lum_rt      ;
+      D._hp_pal_rt      =hp_pal_rt      ;
       D._lit_col_rt_prec=lit_col_rt_prec;
       D.eyeAdaptation   (eye_adapt     );
       D.toneMap         (tone_map      );
@@ -2025,7 +2027,7 @@ void RendererClass::palette(Int index)
       ImageRT &ds=(_ds_1s ? *_ds_1s : *_ds); // Warning: this will disable applying palette only on terrain using STENCIL_REF_TERRAIN for multisampling
       Sky.setFracMulAdd();
 
-      ImageRTPtr intensity(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA, ds.samples())); // we need to match depth multi-sampling, here Alpha is used for 4th palette channel
+      ImageRTPtr intensity(ImageRTDesc(_col->w(), _col->h(), D.highPrecPalRT() ? IMAGERT_RGBA_H : IMAGERT_RGBA, ds.samples())); // we need to match depth multi-sampling, here Alpha is used for 4th palette channel
       D.stencilRef(STENCIL_REF_TERRAIN); // set in case draw codes will use stencil
 
       set(intensity, &ds, true, WANT_DEPTH_READ); setDSLookup(); // we need depth-testing, but want depth-read for particle softing, 'setDSLookup' after 'set'
