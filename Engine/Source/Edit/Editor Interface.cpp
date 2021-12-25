@@ -4,7 +4,7 @@ namespace EE{
 static Int Compare(C Edit::Elm &elm, C UID &id) {return Compare(elm.id, id);}
 namespace Edit{
 /******************************************************************************/
-#define EI_VER 50 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
+#define EI_VER 51 // this needs to be increased every time a new command is added, existing one is changed, or some of engine class file formats get updated
 #define EI_STR "Esenthel Editor Network Interface"
 #define CLIENT_WAIT_TIME         (   60*1000) //    60 seconds
 #define CLIENT_WAIT_TIME_LONG    (15*60*1000) // 15*60 seconds, some operations may take a long time to complete (reloading material textures with resizing, getting world objects, ..)
@@ -473,6 +473,18 @@ Bool EditorInterface::getElms(MemPtr<Elm> elms, Bool include_removed)
    }
 fail:;
    elms.clear(); return false;
+}
+UID EditorInterface::litElm()
+{
+   if(connected())
+   {
+      File &f=_conn.data.reset(); f.putByte(EI_GET_ELM_LIT).pos(0);
+      if(_conn.send(f))
+      if(_conn.receive(CLIENT_WAIT_TIME))
+      if(f.getByte()==EI_GET_ELM_LIT)return f.getUID();
+      disconnect();
+   }
+   return UIDZero;
 }
 Bool EditorInterface::selectedElms(MemPtr<UID> elms)
 {

@@ -277,6 +277,7 @@ struct EditorInterface
 
       // elements
       Bool      getElms (   MemPtr<Elm>  elms, Bool include_removed=false); // get list of          elements     (elements will be sorted by their ID                ), false on fail, 'include_removed'=if include elements that were removed
+      UID       litElm  (                                                ); // get highlighted      element by mouse cursor                                           , 'UIDZero' on fail or if no element is highlighted
       Bool selectedElms (   MemPtr<UID>  elms                            ); // get list of selected element ID's (ID's     will be sorted by which was selected first), false on fail
       Bool   selectElms (C CMemPtr<UID> &elms                            ); // select elements based on their ID's                                                    , false on fail
       UID       newElm  (ELM_TYPE type, C Str &name,                                       C UID &parent_id=UIDZero); // create a new element in the project of 'type', 'name' and assigned to 'parent_id' parent (use 'UIDZero' for no parent), this method does not support following types: ELM_MESH, ELM_SKEL, ELM_PHYS, ELM_WORLD (for creating worlds please use 'newWorld' method)      , ID of the newly created element will be returned or 'UIDZero' if failed
@@ -440,6 +441,7 @@ enum EDITOR_INTERFACE_COMMANDS
    EI_GET_DATA_PATH,
 
    EI_GET_ELMS,
+   EI_GET_ELM_LIT,
    EI_GET_ELMS_SELECTED,
    EI_SET_ELMS_SELECTED,
    EI_RLD_ELMS,

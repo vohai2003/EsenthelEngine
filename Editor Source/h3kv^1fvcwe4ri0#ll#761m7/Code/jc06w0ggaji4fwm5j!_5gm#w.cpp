@@ -178,6 +178,12 @@ class EditorServer : Edit.EditorServer
                   File &f=connection.data.reset().putByte(Edit.EI_GET_ELMS).putBool(elms); if(elms)elms.save(f); f.pos(0); connection.send(f);
                }break;
 
+               case Edit.EI_GET_ELM_LIT:
+               {
+                  File &f=connection.data.reset().putByte(Edit.EI_GET_ELM_LIT).putUID(Proj.valid() ? Proj.list.lit_elm_id : UIDZero); f.pos(0);
+                  connection.send(f);
+               }break;
+
                case Edit.EI_GET_ELMS_SELECTED:
                {
                   bool ok=false;

@@ -1225,7 +1225,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
             channel[TC_METAL]=1;
             channel[TC_AO   ]=2;
          }else
-         if(Contains(base, "ORM", true, WHOLE_WORD_ALPHA))
+         if(Contains(base, "ORM", true, WHOLE_WORD_ALPHA) || Contains(base, "ARM", true, WHOLE_WORD_ALPHA))
          {
             channel[TC_AO   ]=0;
             channel[TC_ROUGH]=1;
@@ -1246,7 +1246,7 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
             TexChannel tc[TC_NUM];
             tc[0].set(TC_ROUGH ).find(base, "roughness" ).find(base, "rough").find(base, "R", true, WHOLE_WORD_ALPHA);
             tc[1].set(TC_SMOOTH).find(base, "smoothness").find(base, "smooth").find(base, "gloss");
-            tc[2].set(TC_METAL ).find(base, "metalness" ).find(base, "metallic").find(base, "metal").find(base, "MT", true);
+            tc[2].set(TC_METAL ).find(base, "metalness" ).find(base, "metallic").find(base, "metal").find(base, "MT", true).find(base, "M", true, WHOLE_WORD_ALPHA);
             tc[3].set(TC_SPEC  ).find(base, "specular"  ).find(base, "spec", false, WHOLE_WORD_ALPHA);
             tc[4].set(TC_AO    ).find(base, "occlusion" ).find(base, "occl").find(base, "AO", true).find(base, "O", true, WHOLE_WORD_ALPHA).find(base, "ao", false, WHOLE_WORD_ALPHA).find(base, "cavity");
             tc[5].set(TC_BUMP  ).find(base, "height"    ).find(base, "bump");
