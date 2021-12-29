@@ -2418,6 +2418,8 @@ enum APPLY_MODE
    APPLY_SET_A_FROM_RGB,
    APPLY_SET_HUE,
    APPLY_SET_HUE_PHOTO,
+   APPLY_SET_LUM,
+   APPLY_SET_LUM_PHOTO,
    APPLY_SUB,
    APPLY_SUB_RGB,
    APPLY_GAMMA,
@@ -2514,6 +2516,8 @@ force_src_resize:
             if(p.value=="setAfromRGB"                                                            )mode=APPLY_SET_A_FROM_RGB;else
             if(p.value=="setHue"                                                                 )mode=APPLY_SET_HUE;else
             if(p.value=="setHuePhoto"                                                            )mode=APPLY_SET_HUE_PHOTO;else
+            if(p.value=="setLum"                                                                 )mode=APPLY_SET_LUM;else
+            if(p.value=="setLumPhoto"                                                            )mode=APPLY_SET_LUM_PHOTO;else
             if(p.value=="sub"                                                                    )mode=APPLY_SUB;else
             if(p.value=="subRGB"                                                                 )mode=APPLY_SUB_RGB;else
             if(p.value=="gamma"                                                                  )mode=APPLY_GAMMA;else
@@ -2654,6 +2658,20 @@ force_src_resize:
                                   //c.xyz=SRGBToLinear(c.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(c.xyz))c.xyz*=lin_lum/cur_lin_lum; c.xyz=LinearToSRGB(c.xyz);
                                                                if(flt cur_lum    =  SRGBLumOfSRGBColor  (c.xyz))c.xyz*=    lum/cur_lum    ; // prefer multiplications in sRGB space, as linear mul may change perceptual contrast and saturation
                                  }
+                              }break;
+
+                              case APPLY_SET_LUM:
+                              {
+                               //c.xyz=SRGBToLinear(base.xyz); flt lum=SRGBToLinear(l.xyz).max(); if(flt cur_lin_lum=   c.xyz.max())c.xyz*=          lum/cur_lin_lum;else c.xyz=lum; c.xyz=LinearToSRGB(c.xyz);
+                                                               flt lum=             l.xyz .max(); if(flt cur_lum    =base.xyz.max())c.xyz =base.xyz*(lum/cur_lum)   ;else c.xyz=lum; // prefer multiplications in sRGB space, as linear mul may change perceptual contrast and saturation
+                                 c.w=base.w;
+                              }break;
+
+                              case APPLY_SET_LUM_PHOTO:
+                              {
+                               //c.xyz=SRGBToLinear(base.xyz); flt lum=LinearLumOfSRGBColor(l.xyz); if(flt cur_lin_lum=LinearLumOfLinearColor(   c.xyz))c.xyz*=          lum/cur_lin_lum ;else c.xyz=lum; c.xyz=LinearToSRGB(c.xyz);
+                                                               flt lum=  SRGBLumOfSRGBColor(l.xyz); if(flt cur_lum    =  SRGBLumOfSRGBColor  (base.xyz))c.xyz =base.xyz*(lum/cur_lum    );else c.xyz=lum; // prefer multiplications in sRGB space, as linear mul may change perceptual contrast and saturation
+                                 c.w=base.w;
                               }break;
 
                               case APPLY_MUL_RGB_SAT:

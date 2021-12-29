@@ -42,6 +42,8 @@ struct Heightmap
    void setMaterial(Int x, Int y, C MaterialPtr &m0, C MaterialPtr &m1, C MaterialPtr &m2, C MaterialPtr &m3, C Vec4  &mtrl_blend) ; // set material at x, y image coordinates to 'm0 m1 m2 m3' materials        of 'mtrl_blend' intensities (intensities should be in range   0..  1)
    void addMaterial(Int x, Int y, C MaterialPtr &m ,                                                            Flt    mtrl_blend) ; // add material at x, y image coordinates
 
+   void setMaterialSafe(Int x, Int y, C VecB4 &mtrl_index, C Vec4 &mtrl_blend); // set material at x, y image coordinates to 'mtrl_index' material indexes of 'mtrl_blend' intensities (intensities should be in range 0..1), 'mtrl_index' represent the indexes of materials which can be accessed by 'material' and 'getMaterialIndex' functions, this function will work properly even if same material is listed multiple times
+
  C Image& heightImage()C {return _height;} // get heightmap height image
 
    // manage

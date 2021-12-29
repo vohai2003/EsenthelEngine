@@ -383,7 +383,7 @@ class ImportTerrainTask : Window
 
                if(mtrl_mode==0 || empty) // set
                {
-                  if(c.any())hm.setMaterial(x, y, mtrl_channel_index, c); // if any material then set it, if not then skip
+                  if(c.any())hm.setMaterialSafe(x, y, mtrl_channel_index, c); // if any material then set it, if not then skip
                }else // blend
                {
                   c*=mtrl_blend;

@@ -3,7 +3,7 @@
 namespace EE{
 /******************************************************************************
 
-   Material Indexes can be set in any of the first 3 slots, example: 0, 15, 0
+   Material Indexes can be set in any of the slots, example: 0, 15, 0, 0
 
    Material Indexes for MtrlCombo's however need to be sorted: 15, 7, 0, 0 (from biggest to smallest),
       so there won't be MtrlCombo's with same materials but different order (like 7, 15, 0, 0)
@@ -12,14 +12,15 @@ namespace EE{
    Material Blend image can be IMAGE_R8G8B8A8   , IMAGE_F32_4
 
 /******************************************************************************/
-#define LODS           4
-#define MATERIAL2_EPS  0.01f // was 0.055f but smaller value is needed now because of multi-material per-pixel blending, low value is also important for 2 materials different in brightness, for example dark dirt vs bright snow
-#define MATERIAL3_EPS  0.01f // was 0.055f but smaller value is needed now because of multi-material per-pixel blending, low value is also important for 2 materials different in brightness, for example dark dirt vs bright snow
-#define MATERIAL4_EPS  0.01f // was 0.055f but smaller value is needed now because of multi-material per-pixel blending, low value is also important for 2 materials different in brightness, for example dark dirt vs bright snow
-#define VTX_HEIGHTMAP  1
-#define VTX_COMPRESS   1
-#define MTRL_BLEND_HP  0 // 0-faster and smaller memory usage
-#define VMC_CONTINUOUS 0 // 0-faster !! enabling makes building slower 22fps vs 20fps so keep at zero !! this was an attempt to remove dynamic memory allocation by holding one continuous buffer for vtx mtrl combos
+#define LODS            4
+#define MATERIAL2_EPS   0.01f // was 0.055f but smaller value is needed now because of multi-material per-pixel blending, low value is also important for 2 materials different in brightness, for example dark dirt vs bright snow
+#define MATERIAL3_EPS   0.01f // was 0.055f but smaller value is needed now because of multi-material per-pixel blending, low value is also important for 2 materials different in brightness, for example dark dirt vs bright snow
+#define MATERIAL4_EPS   0.01f // was 0.055f but smaller value is needed now because of multi-material per-pixel blending, low value is also important for 2 materials different in brightness, for example dark dirt vs bright snow
+#define VTX_HEIGHTMAP   1
+#define VTX_COMPRESS    1
+#define MTRL_BLEND_HP   0 // 0-faster and smaller memory usage
+#define VMC_CONTINUOUS  0 // 0-faster !! enabling makes building slower 22fps vs 20fps so keep at zero !! this was an attempt to remove dynamic memory allocation by holding one continuous buffer for vtx mtrl combos
+#define ALLOW_SAME_MTRL 0 // 0-faster building, but requires materials to be unique
 /******************************************************************************/
 ASSERT(MAX_HM_RES<=129); // various places use UShort to limit for 16-bit (including 'MtrlCombo.vtxs,tris', 'VtxMtrlCombo.mc_vtx_index')
 /******************************************************************************/
@@ -88,6 +89,31 @@ static const Int DownSizeWeights[3][3]=
    {65536/SHARPNESS , 65536/1         , 65536/SHARPNESS },
    {65536/SHARPNESS2, 65536/SHARPNESS , 65536/SHARPNESS2},
 };
+static void Merge(VecB4 &mi, Vec4 &mb) // !! this does not clear 'mi' !!
+{
+   if(mb.y)
+   {
+      if(mi.x==mi.y){mb.x+=mb.y; mb.y=0;}
+   }
+   if(mb.z)
+   {
+      if(mi.x==mi.z){mb.x+=mb.z; mb.z=0;}else
+      if(mi.y==mi.z){mb.y+=mb.z; mb.z=0;}
+   }
+   if(mb.w)
+   {
+      if(mi.x==mi.w){mb.x+=mb.w; mb.w=0;}else
+      if(mi.y==mi.w){mb.y+=mb.w; mb.w=0;}else
+      if(mi.z==mi.w){mb.z+=mb.w; mb.w=0;}
+   }
+}
+static void CleanAfterNormalize(VecB4 &mi, Vec4 &mb)
+{
+   if(mb.x<=0.5f/255){mi.x=0; mb.x=0;}
+   if(mb.y<=0.5f/255){mi.y=0; mb.y=0;}
+   if(mb.z<=0.5f/255){mi.z=0; mb.z=0;}
+   if(mb.w<=0.5f/255){mi.w=0; mb.w=0;}
+}
 /******************************************************************************/
 // MANAGE
 /******************************************************************************/
@@ -501,6 +527,23 @@ void Heightmap::setMaterial(Int x, Int y, C VecB4 &mtrl_index, C Vec4 &mtrl_blen
       if(Flt sum=mb.sum())mb/=sum; // normalize blends
    }
 }
+void Heightmap::setMaterialSafe(Int x, Int y, C VecB4 &mtrl_index, C Vec4 &mtrl_blend)
+{
+   if(InRange(x, _mtrl_index.w())
+   && InRange(y, _mtrl_index.h()))
+   {
+      mtrlBlendHP();
+      VecB4 &mi=_mtrl_index.pixB4(x, y);
+      Vec4  &mb=_mtrl_blend.pixF4(x, y);
+      if(InRange(mtrl_index.x, _materials)){mi.x=mtrl_index.x; mb.x=mtrl_blend.x;}else{mi.x=0; mb.x=0;}
+      if(InRange(mtrl_index.y, _materials)){mi.y=mtrl_index.y; mb.y=mtrl_blend.y;}else{mi.y=0; mb.y=0;}
+      if(InRange(mtrl_index.z, _materials)){mi.z=mtrl_index.z; mb.z=mtrl_blend.z;}else{mi.z=0; mb.z=0;}
+      if(InRange(mtrl_index.w, _materials)){mi.w=mtrl_index.w; mb.w=mtrl_blend.w;}else{mi.w=0; mb.w=0;}
+      Merge(mi, mb);
+      if(Flt sum=mb.sum())mb/=sum; // normalize blends
+    //CleanAfterNormalize(mi, mb);
+   }
+}
 /******************************************************************************/
 void Heightmap::setMaterial(Int x, Int y, C MaterialPtr &m0, C MaterialPtr &m1, C MaterialPtr &m2, C MaterialPtr &m3, C VecB4 &mtrl_blend)
 {
@@ -565,6 +608,10 @@ void Heightmap::addMaterial(Int x, Int y, C MaterialPtr &m, Flt mtrl_blend)
                mb.c[c]+=mtrl_blend; // increase its power
             }else // new material
             {
+            #if ALLOW_SAME_MTRL // it's possible that from the 4 materials, they're the same but listed multiple times, so merge first
+               Merge(mi, mb);
+            #endif
+
                // replace the least powerful
                c=mb.minI();
                mi.c[c]=index;
@@ -575,10 +622,7 @@ void Heightmap::addMaterial(Int x, Int y, C MaterialPtr &m, Flt mtrl_blend)
             if(Flt sum=mb.sum())mb/=sum;
 
             // remove insignificant materials, this is to prevent too many materials residing in memory while they're unused anymore
-            if(mb.x<1.0f/255){mi.x=0; mb.x=0;}
-            if(mb.y<1.0f/255){mi.y=0; mb.y=0;}
-            if(mb.z<1.0f/255){mi.z=0; mb.z=0;}
-            if(mb.w<1.0f/255){mi.w=0; mb.w=0;}
+            CleanAfterNormalize(mi, mb);
          }
       }
    }
@@ -749,6 +793,9 @@ static inline VecB4 VtxMtrlBlend(C VecB4 &mtrl_index, C VecB4 &pix_ind, C VecB4 
 {
    VecI4 mtrl_blend(0);
 
+#if ALLOW_SAME_MTRL
+   #define else
+#endif
  //if(mtrl_index.x) we can assume that this will always be != 0 since mtrl_index is sorted for mtrl combos
    {
       if(mtrl_index.x==pix_ind.x)mtrl_blend.x+=pix_blend.x;else
@@ -782,6 +829,9 @@ static inline VecB4 VtxMtrlBlend(C VecB4 &mtrl_index, C VecB4 &pix_ind, C VecB4 
          }
       }
    }
+#if ALLOW_SAME_MTRL
+   #undef else
+#endif
 
       Flt mul=0;
    if(Int sum=mtrl_blend.sum())mul=255.0f/sum;//else mtrl_blend.x=; since below we're not using 'mtrl_blend.x' then we don't need to set it
@@ -797,6 +847,9 @@ static inline VecB4 VtxMtrlBlend(C VecB4 &mtrl_index, C VecB4 &pix_ind, C Vec4 &
 {
    Vec4 mtrl_blend(0);
 
+#if ALLOW_SAME_MTRL
+   #define else
+#endif
  //if(mtrl_index.x) we can assume that this will always be != 0 since mtrl_index is sorted for mtrl combos
    {
       if(mtrl_index.x==pix_ind.x)mtrl_blend.x+=pix_blend.x;else
@@ -830,6 +883,9 @@ static inline VecB4 VtxMtrlBlend(C VecB4 &mtrl_index, C VecB4 &pix_ind, C Vec4 &
          }
       }
    }
+#if ALLOW_SAME_MTRL
+   #undef else
+#endif
 
    if(Flt sum=mtrl_blend.sum())
    {
