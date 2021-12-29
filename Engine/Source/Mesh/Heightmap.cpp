@@ -20,7 +20,7 @@ namespace EE{
 #define VTX_COMPRESS    1
 #define MTRL_BLEND_HP   0 // 0-faster and smaller memory usage
 #define VMC_CONTINUOUS  0 // 0-faster !! enabling makes building slower 22fps vs 20fps so keep at zero !! this was an attempt to remove dynamic memory allocation by holding one continuous buffer for vtx mtrl combos
-#define ALLOW_SAME_MTRL 0 // 0-faster building, but requires materials to be unique
+#define ALLOW_SAME_MTRL 0 // 0-faster building, but requires materials to be unique. Don't enable, just use 'setMaterialSafe' when needed.
 /******************************************************************************/
 ASSERT(MAX_HM_RES<=129); // various places use UShort to limit for 16-bit (including 'MtrlCombo.vtxs,tris', 'VtxMtrlCombo.mc_vtx_index')
 /******************************************************************************/
@@ -541,7 +541,7 @@ void Heightmap::setMaterialSafe(Int x, Int y, C VecB4 &mtrl_index, C Vec4 &mtrl_
       if(InRange(mtrl_index.w, _materials)){mi.w=mtrl_index.w; mb.w=mtrl_blend.w;}else{mi.w=0; mb.w=0;}
       Merge(mi, mb);
       if(Flt sum=mb.sum())mb/=sum; // normalize blends
-    //CleanAfterNormalize(mi, mb);
+    //CleanAfterNormalize(mi, mb); not needed because build can handle this
    }
 }
 /******************************************************************************/
