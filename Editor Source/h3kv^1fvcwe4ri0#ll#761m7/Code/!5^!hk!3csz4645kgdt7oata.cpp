@@ -224,7 +224,7 @@ class ConvertToAtlasClass : PropWin
                            if(mtrl.rotated)Swap(t.x, t.y);
                            t*=mul; t+=add;
                         }
-                        base.setTanBin(); // need to set before 'weldVtx' so it doesn't weld too many vtx's. src mesh doesn't have them
+                        base.setTanBinDbl(); // need to set before 'weldVtx' so it doesn't weld too many vtx's. src mesh doesn't have them
                         base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down, do not remove degenerate faces because they're not needed because we're doing this only because of 'explodeVtxs'
                      }
                   }

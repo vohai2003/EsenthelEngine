@@ -1862,7 +1862,7 @@ class AnimEditor : Viewport4Region
          #else // load Edit mesh (slower but uses "original mesh skel")
             skel=&T.skel_data; T.skel_data.load(Proj.gamePath(skel_id));
             mesh=&  mesh_data; Load(mesh_data, Proj.editPath(mesh_id), Proj.game_path); RemovePartsAndLods(mesh_data); mesh_data.transform(skel_data.transform());
-            mesh_data.skeleton(skel).setTanBin().setRender(false);
+            mesh_data.skeleton(skel).setTanBinDbl().setRender(false);
          #endif
             slot_meshes.clear();
          }

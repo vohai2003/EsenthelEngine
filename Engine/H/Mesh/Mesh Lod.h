@@ -56,6 +56,7 @@ struct MeshLod // Level of Detail, array of Mesh Part's
    MeshLod& setNormalsAuto(Flt angle=EPS_NRM_AUTO, Flt pos_eps=EPS); // recalculate vertex            3D normals using an automatic smart algorithm, 'angle'=angle limit for merging vertex normals, this method will generate a lot of vertexes, it's recommended to call 'weldVtx' afterwards
    MeshLod& setFaceNormals(                                       ); // recalculate triangle and quad 3D normals
    MeshLod& setTanBin     (                                       ); // recalculate vertex            3D tangents and binormals
+   MeshLod& setTanBinDbl  (                                       ); // recalculate vertex            3D tangents and binormals using Dbl precision, which is slower but correctly handles huge meshes
    MeshLod& setAutoTanBin (                                       ); // automatically calculate vertex tangents and binormals if needed, if they're not needed then they will be removed
 
 #if EE_PRIVATE

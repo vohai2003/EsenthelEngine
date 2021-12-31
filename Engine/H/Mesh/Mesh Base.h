@@ -365,6 +365,7 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
    MeshBase& setNormalsAuto(Flt angle=EPS_NRM_AUTO, Flt pos_eps=EPS                           ); // recalculate vertex            3D normals using an automatic smart algorithm, 'angle'=angle limit for merging vertex normals, this method will generate a lot of vertexes, it's recommended to call 'weldVtx' afterwards
    MeshBase& setFaceNormals(                                                                  ); // recalculate triangle and quad 3D normals
    MeshBase& setTanBin     (                                                                  ); // recalculate vertex            3D tangents and binormals
+   MeshBase& setTanBinDbl  (                                                                  ); // recalculate vertex            3D tangents and binormals using Dbl precision, which is slower but correctly handles huge meshes
    MeshBase& setAutoTanBin (                                                                  ); // automatically calculate vertex tangents and binormals if needed, if they're not needed then they will be removed
    MeshBase& setVtxDup2D   (MESH_FLAG flag=MESH_NONE, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS); // set vertex 2D duplicates (vtx.dup)
    MeshBase& setVtxDup     (MESH_FLAG flag=MESH_NONE, Flt pos_eps=EPS, Flt nrm_cos=EPS_COL_COS); // set vertex 3D duplicates (vtx.dup)

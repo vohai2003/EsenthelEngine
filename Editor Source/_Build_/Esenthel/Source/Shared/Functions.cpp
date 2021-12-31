@@ -3048,7 +3048,7 @@ void FixMesh(Mesh &mesh)
             {
                base.explodeVtxs();
                FixVtxNrm(base);
-               if(!base.vtx.tan() || !base.vtx.bin())base.setTanBin(); //if(!base.vtx.tan())base.setTangents(); if(!base.vtx.bin())base.setBinormals(); // set in case mesh doesn't have them yet, need to call before 'weldVtx'
+               if(!base.vtx.tan() || !base.vtx.bin())base.setTanBinDbl(); //if(!base.vtx.tan())base.setTangents(); if(!base.vtx.bin())base.setBinormals(); // set in case mesh doesn't have them yet, need to call before 'weldVtx'
                base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down, do not remove degenerate faces because they're not needed because we're doing this only because of 'explodeVtxs'
             }
             break;

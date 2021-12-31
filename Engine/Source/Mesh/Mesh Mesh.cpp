@@ -347,6 +347,7 @@ Mesh& Mesh::setNormals2D  (Bool flag              ) {REP(lods())lod(i).setNormal
 Mesh& Mesh::setNormals    (                       ) {REP(lods())lod(i).setNormals    (     ); return T;}
 Mesh& Mesh::setNormalsAuto(Flt  angle, Flt pos_eps) {REP(lods())lod(i).setNormalsAuto(angle, pos_eps); return T;}
 Mesh& Mesh::setTanBin     (                       ) {REP(lods())lod(i).setTanBin     (              ); return T;}
+Mesh& Mesh::setTanBinDbl  (                       ) {REP(lods())lod(i).setTanBinDbl  (              ); return T;}
 Mesh& Mesh::setAutoTanBin (                       ) {REP(lods())lod(i).setAutoTanBin (              ); return T;}
 Bool  Mesh::setBox        (Bool skip_hidden_parts )
 {

@@ -131,6 +131,7 @@ inline Bool Cuts(C VecD  &point, C PlaneD  &plane) {return Dist(point, plane)<=0
 Vec2  PointOnPlane(C Vec2  &point,                     C Vec2  &plane_normal); // this function assumes that plane position is Vec2 (0,0)
 VecD2 PointOnPlane(C VecD2 &point,                     C VecD2 &plane_normal); // this function assumes that plane position is VecD2(0,0)
 Vec   PointOnPlane(C Vec   &point,                     C Vec   &plane_normal); // this function assumes that plane position is Vec  (0,0,0)
+VecD  PointOnPlane(C VecD  &point,                     C Vec   &plane_normal); // this function assumes that plane position is Vec  (0,0,0)
 VecD  PointOnPlane(C VecD  &point,                     C VecD  &plane_normal); // this function assumes that plane position is VecD (0,0,0)
 Vec2  PointOnPlane(C Vec2  &point, C Vec2  &plane_pos, C Vec2  &plane_normal);
 VecD2 PointOnPlane(C VecD2 &point, C VecD2 &plane_pos, C VecD2 &plane_normal);

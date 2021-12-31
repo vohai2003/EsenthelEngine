@@ -100,6 +100,7 @@ Dbl DistPointPlaneY(C VecD &point, C VecD &plane_pos, C VecD &plane_normal) {ret
 Vec2  PointOnPlane   (C Vec2  &point,                     C Vec2  &plane_normal              ) {return point-plane_normal*DistPointPlane   (point,            plane_normal     );}
 VecD2 PointOnPlane   (C VecD2 &point,                     C VecD2 &plane_normal              ) {return point-plane_normal*DistPointPlane   (point,            plane_normal     );}
 Vec   PointOnPlane   (C Vec   &point,                     C Vec   &plane_normal              ) {return point-plane_normal*DistPointPlane   (point,            plane_normal     );}
+VecD  PointOnPlane   (C VecD  &point,                     C Vec   &plane_normal              ) {return point-plane_normal*DistPointPlane   (point,            plane_normal     );}
 VecD  PointOnPlane   (C VecD  &point,                     C VecD  &plane_normal              ) {return point-plane_normal*DistPointPlane   (point,            plane_normal     );}
 Vec2  PointOnPlane   (C Vec2  &point, C Vec2  &plane_pos, C Vec2  &plane_normal              ) {return point-plane_normal*DistPointPlane   (point, plane_pos, plane_normal     );}
 VecD2 PointOnPlane   (C VecD2 &point, C VecD2 &plane_pos, C VecD2 &plane_normal              ) {return point-plane_normal*DistPointPlane   (point, plane_pos, plane_normal     );}

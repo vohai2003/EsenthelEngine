@@ -209,7 +209,7 @@ void ObjView::meshReverseNrm()
       REPA(changed_parts)
       {
          MeshPart &part=lod.parts[changed_parts[i]];
-         /*part.base.setTanBin(); changing normal sign doesn't affect tan/bin */ part.setRender();
+         /*part.base.setTanBinDbl(); changing normal sign doesn't affect tan/bin */ part.setRender();
          changed=true;
       }
    }else
@@ -218,7 +218,7 @@ void ObjView::meshReverseNrm()
       {
          MeshPart &part=lod.parts[i];
          Chs(part.base.vtx.nrm(), part.base.vtxs());
-         /*part.base.setTanBin(); changing normal sign doesn't affect tan/bin */ part.setRender();
+         /*part.base.setTanBinDbl(); changing normal sign doesn't affect tan/bin */ part.setRender();
          changed=true;
       }
    }
@@ -240,7 +240,7 @@ void ObjView::meshSetNrmFace()
          MeshPart &part=lod.parts[i];
          MeshBase &base=part.base;
          base.setNormalsAuto(EPS_NRM_AUTO, pos_eps)
-             .setTanBin() // reset tan/bin as they may depend on normals and duplicates
+             .setTanBinDbl() // reset tan/bin as they may depend on normals and duplicates
              .weldVtx(VTX_ALL, pos_eps, EPS_COL_COS, -1);
          part.setRender();
          changed=true;
@@ -276,7 +276,7 @@ void ObjView::meshSetNrm(MESH_FLAG vtx_test)
                changed=true;
             }
          }
-         lod.setTanBin().setRender().exclude(VTX_DUP); // reset tan/bin as they may depend on normals and duplicates
+         lod.setTanBinDbl().setRender().exclude(VTX_DUP); // reset tan/bin as they may depend on normals and duplicates
       }
    }else
    {
@@ -287,7 +287,7 @@ void ObjView::meshSetNrm(MESH_FLAG vtx_test)
          if(vtx_test)base.setVtxDup(vtx_test, pos_eps);else base.exclude(VTX_DUP);
          base.setNormals();
          if(avg)REPA(base.vtx)base.vtx.nrm(i)=!Avg(base.vtx.nrm(i), temp.vtx.nrm(i));
-         base.setTanBin(); part.setRender(); // reset tan/bin as they may depend on normals and duplicates
+         base.setTanBinDbl(); part.setRender(); // reset tan/bin as they may depend on normals and duplicates
          changed=true;
       }
       lod.exclude(VTX_DUP);
@@ -302,6 +302,20 @@ void ObjView::meshCopyNrm()
       mesh_undos.set("setNrm");
    if(mesh_parts.edit_selected())
    {
+      if(lit_vtx<0)Gui.msgBox(S, "No highlighted vertex");else
+      {
+         MeshLod &lod=getLod();
+         if(C MeshPart *part=lod.parts.addr(lit_vf_part))if(InRange(lit_vtx, part->base.vtx) && part->base.vtx.nrm())
+         {
+            Vec nrm=part->base.vtx.nrm(lit_vtx);
+            REPA(sel_vtx)
+            {
+             C VecI2 &v=sel_vtx[i]; if(MeshPart *part=lod.parts.addr(v.x))if(InRange(v.y, part->base.vtx) && part->base.vtx.nrm())part->base.vtx.nrm(v.y)=nrm;
+            }
+            lod.setTanBinDbl().setRender(); // reset tan/bin as they may depend on normals and duplicates
+            changed=true;
+         }
+      }
    }else
    {
       if(C MeshPart *part_lit=lod.parts.addr(lit_part))
@@ -333,7 +347,7 @@ void ObjView::meshCopyNrm()
                      changed_part=true;
                   }
                }
-               if(changed_part){base.setTanBin(); part.setRender(); changed=true;} // reset tan/bin as they may depend on normals and duplicates
+               if(changed_part){base.setTanBinDbl(); part.setRender(); changed=true;} // reset tan/bin as they may depend on normals and duplicates
             }
          }
       }
@@ -368,7 +382,7 @@ void ObjView::meshNrmY()
                changed=true;
             }
          }
-         lod.setTanBin().setRender(); // reset tan/bin as they may depend on normals and duplicates
+         lod.setTanBinDbl().setRender(); // reset tan/bin as they may depend on normals and duplicates
       }
    }else
    {
@@ -378,7 +392,7 @@ void ObjView::meshNrmY()
          MeshBase &base=part.base; if(base.vtx.nrm())
          {
             REPA(base.vtx)AlignVtxNormal(base.vtx.nrm(i), dest);
-            base.setTanBin(); part.setRender(); // reset tan/bin as they may depend on normals and duplicates
+            base.setTanBinDbl(); part.setRender(); // reset tan/bin as they may depend on normals and duplicates
             changed=true;
          }
       }
@@ -468,7 +482,7 @@ void ObjView::meshCreateFace()
                if(base.vtx.blend   ())base.vtx.blend   (v).set(255, 0, 0, 0);
                if(base.vtx.tex0    ()){C Vec &pos=base.vtx.pos(v); base.vtx.tex0(v).set(Dot(pos, tex_matrix.x), Dot(pos, tex_matrix.y));}
             }
-            base.setTanBin(); // when adding vertex we need to calc its tan/bin, have to call before 'weldVtx'
+            base.setTanBinDbl(); // when adding vertex we need to calc its tan/bin, have to call before 'weldVtx'
             base.weldVtx(VTX_ALL, EPSD, EPS_COL_COS, -1); // use small epsilon in case mesh is scaled down, do not remove degenerate faces because they're not needed because we're only adding new faces
          }
          part->setRender();
@@ -902,7 +916,7 @@ void ObjView::meshCopyParts()
                mesh.variationInclude(src_mesh);
                getLod().add(src_mesh, &src_mesh, &mesh);
             }else  mesh.add(src_mesh); // otherwise copy to entire mesh
-            mesh.setTanBin().setRender().setBox(); // set tan/bin because src mesh from disk doesn't have them
+            mesh.setTanBinDbl().setRender().setBox(); // set tan/bin because src mesh from disk doesn't have them
             Memc<int> sel_parts; REP(getLod().parts.elms()-old_parts)sel_parts.add(old_parts+i);
             mesh_parts.selParts(sel_parts);
             changed=true;

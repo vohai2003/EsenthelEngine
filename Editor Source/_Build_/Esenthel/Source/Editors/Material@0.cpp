@@ -1092,6 +1092,12 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
             channel[TC_ROUGH]=1;
             channel[TC_METAL]=2;
          }else
+         if(Contains(base, "mask", false, WHOLE_WORD_ALPHA) && Contains(base, "unity")) // Unity HDRP Mask R=metal, G=AO, B=Detail mask, A=smoothness
+         {
+            channel[TC_METAL ]=0;
+            channel[TC_AO    ]=1;
+            channel[TC_SMOOTH]=3;
+         }else
          if(Contains(base, "metal") && ContainsAny(base, "smooth gloss")) // Unity RGB=metal, A=smoothness
          {
             channel[TC_METAL ]=0;

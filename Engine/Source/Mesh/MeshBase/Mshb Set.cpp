@@ -407,6 +407,160 @@ MeshBase& MeshBase::setTanBin()
    }
    return T;
 }
+MeshBase& MeshBase::setTanBinDbl()
+{
+   Bool set_tan=true, set_bin=true;
+
+   if(set_tan || set_bin) // want to set anything
+   if(C Vec  *pos=vtx.pos ()) // we can calculate only if we have positions
+   if(C Vec2 *tex=vtx.tex0()) // and tex coords
+   {
+      // when calculating tangents/binormals, we can't use any duplicates, because they have no knowledge about mirrored triangles, to detect them, tangents/binormals are needed, so first we set tan/bin per triangle, then we detect which go in same way, and then we merge
+      include((set_tan ? VTX_TAN : MESH_NONE)|(set_bin ? VTX_BIN : MESH_NONE));
+      Mems<VecD> vtx_tan, vtx_bin;
+      if(set_tan)vtx_tan.setNumZero(vtxs());
+      if(set_bin)vtx_bin.setNumZero(vtxs());
+
+      if(VecI *_tri=tri.ind())REPA(tri)
+      {
+         VecI  f  =*_tri++; // here can't remap duplicates, because doing so would break mirrored triangles/texcoords
+       C Vec2 &t0 =tex[f.x],
+               ta =tex[f.y]-t0,
+               tb =tex[f.z]-t0;
+       C Vec  &p0 =pos[f.x],
+              &p1 =pos[f.y],
+              &p2 =pos[f.z];
+       C VecD  p01=p1-p0,
+               p02=p2-p0;
+         // Dbl Tri::area()C {return 0.5*Cross(p[1]-p[0], p[2]-p[0]).length();}
+         Dbl length=Cross(p01, p02).length();
+         Dbl u, v;
+         // tangent
+         // u*ta   + v*tb   = Vec2(1, 0)
+         // u*ta.x + v*tb.x = 1
+         // u*ta.y + v*tb.y = 0
+         if(set_tan && Solve(ta.x, ta.y, tb.x, tb.y, 1, 0, u, v)==1)
+         {
+            VecD tan=p01*u + p02*v;
+                 tan.setLength(length); // make proportional to face area
+            vtx_tan[f.x]+=tan;
+            vtx_tan[f.y]+=tan;
+            vtx_tan[f.z]+=tan;
+         }
+         // binormal
+         // u*ta   + v*tb   = Vec2(0, 1)
+         // u*ta.x + v*tb.x = 0
+         // u*ta.y + v*tb.y = 1
+         if(set_bin && Solve(ta.x, ta.y, tb.x, tb.y, 0, 1, u, v)==1)
+         {
+            VecD bin=p01*u + p02*v;
+                 bin.setLength(length); // make proportional to face area
+            vtx_bin[f.x]+=bin;
+            vtx_bin[f.y]+=bin;
+            vtx_bin[f.z]+=bin;
+         }
+      }
+      if(VecI4 *_quad=quad.ind())REPA(quad)
+      {
+         VecI4 f  =*_quad++; // here can't remap duplicates, because doing so would break mirrored triangles/texcoords
+       C Vec2 &t0 =tex[f.x],
+               ta =tex[f.y]-t0,
+               tb =tex[f.w]-t0;
+       C Vec  &p0 =pos[f.x],
+              &p1 =pos[f.y],
+              &p2 =pos[f.z],
+              &p3 =pos[f.w];
+       C VecD  p01=p1-p0,
+               p03=p3-p0,
+               p12=p2-p1,
+               p13=p3-p1;
+         // Dbl Quad::area()C {return 0.5*(Cross(p[1]-p[0], p[3]-p[0]).length()+Cross(p[2]-p[1], p[3]-p[1]).length());}
+         Dbl length=Cross(p01, p03).length() + Cross(p12, p13).length();
+         Dbl u, v;
+         if(set_tan && Solve(ta.x, ta.y, tb.x, tb.y, 1, 0, u, v)==1)
+         {
+            VecD tan=p01*u + p03*v;
+                 tan.setLength(length); // make proportional to face area
+            vtx_tan[f.x]+=tan;
+            vtx_tan[f.y]+=tan;
+            vtx_tan[f.z]+=tan;
+            vtx_tan[f.w]+=tan;
+         }
+         if(set_bin && Solve(ta.x, ta.y, tb.x, tb.y, 0, 1, u, v)==1)
+         {
+            VecD bin=p01*u + p03*v;
+                 bin.setLength(length); // make proportional to face area
+            vtx_bin[f.x]+=bin;
+            vtx_bin[f.y]+=bin;
+            vtx_bin[f.z]+=bin;
+            vtx_bin[f.w]+=bin;
+         }
+      }
+
+      // merge neighbors
+      // !! Warning: here vtx.tan, vtx.bin lengths are proportional to their face areas, and aren't normalized, so 'setVtxDupEx' 'Dot' tests for those vectors will work correctly only with 0 as eps cos
+      if(set_tan)REPA(vtx)vtx.tan(i)=vtx_tan[i];
+      if(set_bin)REPA(vtx)vtx.bin(i)=vtx_bin[i];
+      setVtxDupEx(VTX_POS|VTX_NRM_TAN_BIN|VTX_TEX0, EPSD, EPS_COL_COS, 0, 0, true); // use small pos epsilon in case mesh is scaled down, use 0 eps cos for tan/bin to only test if they're on the same side (also only this value can work for unnormalized vectors), for tan/bin we can use tex_wrap=true
+      if(vtx.dup())REPA(vtx)
+      {
+         Int dup=vtx.dup(i); if(dup!=i) // duplicate
+         { // add to unique
+            if(set_tan)vtx_tan[dup]+=vtx_tan[i];
+            if(set_bin)vtx_bin[dup]+=vtx_bin[i];
+         }
+      }
+
+      // normalize unique
+      REPA(vtx)
+      {
+         if(vtx.dup() && vtx.dup(i)!=i)continue; // skip for duplicates
+         if(set_tan)
+         {
+            VecD &tan_src=vtx_tan[i];
+            Vec  &tan_dst=vtx.tan(i);
+            if(vtx.nrm()) // if have normals
+            {
+             C Vec &nrm=vtx.nrm(i);
+               tan_src=PointOnPlane(tan_src, nrm); // put on normal plane, this is needed for some models that have smooth vtx normals, but achieve flat surfaces due to normal maps. This is also needed to make tan perpendicular to nrm, so valid non-zero 'bin' can be generated out of the pair (in order to avoid zero which might generate NaN in the shader)
+               if(!tan_src.normalize() // if tan is zero
+               || Abs(Dot(nrm, tan_src))>=SQRT2_2) // or after normalization it's close to normal (this can happen due to numerical precision issues)
+                  {tan_dst=PerpN(nrm); goto tan_set;} // set as any perpendicular vector to normal
+            }else
+            if(!tan_src.normalize()){tan_dst.set(DEFAULT_VTX_TAN); goto tan_set;} // !! valid non-zero tangent must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
+            tan_dst=tan_src;
+         tan_set:;
+         }
+         if(set_bin)
+         {
+            VecD &bin_src=vtx_bin[i];
+            Vec  &bin_dst=vtx.bin(i);
+            if(bin_src.normalize())bin_dst=bin_src;else // !! valid non-zero binormal must be set because otherwise NaN might get generated in the shader due to normalization of zero vectors !!
+            {
+               if(vtx.nrm() && vtx.tan())bin_dst=CrossN(vtx.nrm(i), vtx.tan(i));else
+               if(vtx.nrm()             )bin_dst= PerpN(vtx.nrm(i)            );else
+               if(             vtx.tan())bin_dst= PerpN(            vtx.tan(i));else
+                                         bin_dst.set(DEFAULT_VTX_BIN);
+            }
+         }
+      }
+
+      // set duplicates from unique
+      if(vtx.dup())
+      {
+         REPA(vtx)
+         {
+            Int dup=vtx.dup(i); if(dup!=i) // duplicate
+            {
+               if(set_tan)vtx.tan(i)=vtx.tan(dup);
+               if(set_bin)vtx.bin(i)=vtx.bin(dup);
+            }
+         }
+         exclude(VTX_DUP);
+      }
+   }
+   return T;
+}
 /******************************************************************************/
 MeshBase& MeshBase::setAutoTanBin()
 {

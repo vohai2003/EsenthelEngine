@@ -73,6 +73,7 @@ struct Mesh : MeshLod // Mesh (array of Mesh LODs)
    Mesh& setNormalsAuto(Flt angle=EPS_NRM_AUTO, Flt pos_eps=EPS); // recalculate vertex            3D normals using an automatic smart algorithm, 'angle'=angle limit for merging vertex normals, this method will generate a lot of vertexes, it's recommended to call 'weldVtx' afterwards
    Mesh& setFaceNormals(                                       ); // recalculate triangle and quad 3D normals
    Mesh& setTanBin     (                                       ); // recalculate vertex            3D tangents and binormals
+   Mesh& setTanBinDbl  (                                       ); // recalculate vertex            3D tangents and binormals using Dbl precision, which is slower but correctly handles huge meshes
    Mesh& setAutoTanBin (                                       ); // automatically calculate vertex tangents and binormals if needed, if they're not needed then they will be removed
    Bool  setBox        (Bool skip_hidden_parts=true            ); // recalculate bounding box, 'skip_hidden_parts'=if MeshParts with MSHP_HIDDEN should not be included in the box, returns false on fail
 
