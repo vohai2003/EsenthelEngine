@@ -115,9 +115,12 @@ Bool Ragdoll::createTry(C AnimatedSkeleton &anim_skel, Flt scale, Flt density, B
             }
          }
 
-         if(sb.type==BONE_HEAD)rb.actor.adamping(7);
-         else                  rb.actor.adamping(4);
-                               rb.actor. damping(0.5f).sleepEnergy(0.1f);
+         rb.actor.adamping(4.0f);
+         rb.actor. damping(0.5f);
+         rb.actor.sleepEnergy(0.01f);
+         rb.actor._dynamic->setMaxDepenetrationVelocity(0.1f);
+         rb.actor._dynamic->setSolverIterationCounts(4, 4);
+       //rb.actor._dynamic->setStabilizationThreshold(1.0f); // may need enabling eENABLE_STABILIZATION
       }
 
       if(!kinematic)
