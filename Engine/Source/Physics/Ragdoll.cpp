@@ -153,14 +153,24 @@ Bool Ragdoll::createTry(C AnimatedSkeleton &anim_skel, Flt scale, Flt density, B
 
                   case BONE_LOWER_ARM:
                   {
-                   C Vec &axis=sp.perp;
-                    _joints.New().createBodyHinge(rb.actor, rp.actor, sb.pos*_scale, axis, 0, DegToRad(140));
+                     Vec axis=sp.perp; if(sb.type_index>=0)axis.chs();
+                  #if 0
+                     Flt angle=Angle(sb.dir, Cross(axis, sp.dir), sp.dir), angle_offset=angle-PI_2;
+                  #else // optimized
+                     Flt angle_offset=Angle(sb.dir, sp.dir, Cross(sp.dir, axis));
+                  #endif
+                    _joints.New().createBodyHinge(rb.actor, rp.actor, sb.pos*_scale, axis, 0+angle_offset, DegToRad(140)+angle_offset);
                   }break;
 
                   case BONE_LOWER_LEG:
                   {
                    C Vec &axis=sp.cross();
-                    _joints.New().createBodyHinge(rb.actor, rp.actor, sb.pos*_scale, axis, 0, DegToRad(140));
+                  #if 0
+                     Flt angle=Angle(sb.dir, sp.perp, sp.dir), angle_offset=PI_2-angle;
+                  #else // optimized
+                     Flt angle_offset=Angle(sb.dir, sp.dir, sp.perp);
+                  #endif
+                    _joints.New().createBodyHinge(rb.actor, rp.actor, sb.pos*_scale, axis, 0+angle_offset, DegToRad(140)+angle_offset);
                   }break;
 
                   default: _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, DegToRad(30), DegToRad(30)); break;
