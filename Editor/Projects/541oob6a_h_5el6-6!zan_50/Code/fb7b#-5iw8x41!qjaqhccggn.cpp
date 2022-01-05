@@ -74,6 +74,7 @@ void Draw()
    Renderer(Render);
 
    Renderer.setDepthForDebugDrawing();
+   if(Kb.ctrl())D.clearDepth();
    Physics.draw();
 
    D.text(0, 0.9, "Press Space to reset simulation");

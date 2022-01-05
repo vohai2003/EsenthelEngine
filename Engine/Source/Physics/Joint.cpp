@@ -235,7 +235,7 @@ static void CreateHinge(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2
 #endif
 }
 /******************************************************************************/
-static void CreateSpherical(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2], C Vec local_axis[2], C Vec local_normal[2], C Flt *swing, C Flt *twist, Bool collision, Bool body)
+static void CreateSpherical(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2], C Vec local_axis[2], C Vec local_normal[2], C Flt *twist, C Flt *swing_y, C Flt *swing_z, Bool collision, Bool body)
 {
 #if PHYSX
 #if 0 // PxSphericalJoint
@@ -261,21 +261,21 @@ static void CreateSpherical(Joint &joint, Actor &a0, Actor *a1, C Vec local_anch
    if(Physx.world && ValidActors(a0, a1))
       if(PxD6Joint *spherical=PxD6JointCreate(*Physx.physics, a0._actor, Physx.matrix(m0), a1 ? a1->_actor : null, Physx.matrix(m1)))
    {
-      spherical->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED  , collision  );
-	   spherical->setMotion        (PxD6Axis::eSWING1, swing ? PxD6Motion::eLIMITED : PxD6Motion::eFREE);
-	   spherical->setMotion        (PxD6Axis::eSWING2, swing ? PxD6Motion::eLIMITED : PxD6Motion::eFREE);
-	   spherical->setMotion        (PxD6Axis::eTWIST , twist ? PxD6Motion::eLIMITED : PxD6Motion::eFREE);
-      if(swing)
-      {
-         Flt value=Mid(*swing, EPS, PI-EPS);
-         PxJointLimitCone limit(value, value); if(body){limit.restitution=BOUNCE; limit.stiffness=SPRING; limit.damping=DAMPING;}
-         spherical->setSwingLimit(limit);
-      }
+      spherical->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, collision);
+      spherical->setMotion        (PxD6Axis::eTWIST , twist   ? (*twist  <=EPS) ? PxD6Motion::eLOCKED : PxD6Motion::eLIMITED : PxD6Motion::eFREE);
+      spherical->setMotion        (PxD6Axis::eSWING1, swing_y ? (*swing_y<=EPS) ? PxD6Motion::eLOCKED : PxD6Motion::eLIMITED : PxD6Motion::eFREE);
+      spherical->setMotion        (PxD6Axis::eSWING2, swing_z ? (*swing_z<=EPS) ? PxD6Motion::eLOCKED : PxD6Motion::eLIMITED : PxD6Motion::eFREE);
       if(twist)
       {
          Flt value=Mid(*twist, 0, PI);
          PxJointAngularLimitPair limit(-value, value); if(body){limit.restitution=BOUNCE; limit.stiffness=SPRING; limit.damping=DAMPING;}
          spherical->setTwistLimit(limit);
+      }
+      if(swing_y || swing_z)
+      {
+         PxJointLimitCone limit(swing_y ? Mid(*swing_y, EPS, PI-EPS) : PI_2,
+                                swing_z ? Mid(*swing_z, EPS, PI-EPS) : PI_2); if(body){limit.restitution=BOUNCE; limit.stiffness=SPRING; limit.damping=DAMPING;}
+         spherical->setSwingLimit(limit);
       }
       joint._joint=spherical;
    }
@@ -422,9 +422,9 @@ Joint& Joint::createHinge(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, Bool
    Matrix m0            =      a0. matrix(),
           m1            =(a1 ? a1->matrix() : MatrixIdentity);
    Vec    normal        =PerpN(axis),
-          local_anchor[]={Vec(anchor).divNormalized(m0      ), Vec(anchor).divNormalized(m1      )},
-          local_axis  []={Vec(axis  ).divNormalized(m0.orn()), Vec(axis  ).divNormalized(m1.orn())},
-          local_normal[]={Vec(normal).divNormalized(m0.orn()), Vec(normal).divNormalized(m1.orn())};
+          local_anchor[]={Vec().fromDivNormalized(anchor, m0      ), Vec().fromDivNormalized(anchor, m1      )},
+          local_axis  []={Vec().fromDivNormalized(axis  , m0.orn()), Vec().fromDivNormalized(axis  , m1.orn())},
+          local_normal[]={Vec().fromDivNormalized(normal, m0.orn()), Vec().fromDivNormalized(normal, m1.orn())};
    CreateHinge(T, a0, a1, local_anchor, local_axis, local_normal, null, collision, false);
    return T;
 }
@@ -434,22 +434,33 @@ Joint& Joint::createHinge(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, Flt 
    Matrix m0            =      a0. matrix(),
           m1            =(a1 ? a1->matrix() : MatrixIdentity);
    Vec    normal        =PerpN(axis),
-          local_anchor[]={Vec(anchor).divNormalized(m0      ), Vec(anchor).divNormalized(m1      )},
-          local_axis  []={Vec(axis  ).divNormalized(m0.orn()), Vec(axis  ).divNormalized(m1.orn())},
-          local_normal[]={Vec(normal).divNormalized(m0.orn()), Vec(normal).divNormalized(m1.orn())};
+          local_anchor[]={Vec().fromDivNormalized(anchor, m0      ), Vec().fromDivNormalized(anchor, m1      )},
+          local_axis  []={Vec().fromDivNormalized(axis  , m0.orn()), Vec().fromDivNormalized(axis  , m1.orn())},
+          local_normal[]={Vec().fromDivNormalized(normal, m0.orn()), Vec().fromDivNormalized(normal, m1.orn())};
    CreateHinge(T, a0, a1, local_anchor, local_axis, local_normal, &Vec2(min_angle, max_angle), collision, false);
    return T;
 }
-Joint& Joint::createSpherical(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, C Flt *swing, C Flt *twist, Bool collision)
+Joint& Joint::createSpherical(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, C Flt *twist, C Flt *swing, Bool collision)
 {
    del();
    Matrix m0            =      a0. matrix(),
           m1            =(a1 ? a1->matrix() : MatrixIdentity);
    Vec    normal        =PerpN(axis),
-          local_anchor[]={Vec(anchor).divNormalized(m0      ), Vec(anchor).divNormalized(m1      )},
-          local_axis  []={Vec(axis  ).divNormalized(m0.orn()), Vec(axis  ).divNormalized(m1.orn())},
-          local_normal[]={Vec(normal).divNormalized(m0.orn()), Vec(normal).divNormalized(m1.orn())};
-   CreateSpherical(T, a0, a1, local_anchor, local_axis, local_normal, swing, twist, collision, false);
+          local_anchor[]={Vec().fromDivNormalized(anchor, m0      ), Vec().fromDivNormalized(anchor, m1      )},
+          local_axis  []={Vec().fromDivNormalized(axis  , m0.orn()), Vec().fromDivNormalized(axis  , m1.orn())},
+          local_normal[]={Vec().fromDivNormalized(normal, m0.orn()), Vec().fromDivNormalized(normal, m1.orn())};
+   CreateSpherical(T, a0, a1, local_anchor, local_axis, local_normal, twist, swing, swing, collision, false);
+   return T;
+}
+Joint& Joint::createSpherical(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, C Vec &perp, C Flt *twist, C Flt *swing_y, C Flt *swing_z, Bool collision)
+{
+   del();
+   Matrix m0            =      a0. matrix(),
+          m1            =(a1 ? a1->matrix() : MatrixIdentity);
+   Vec    local_anchor[]={Vec().fromDivNormalized(anchor, m0      ), Vec().fromDivNormalized(anchor, m1      )},
+          local_axis  []={Vec().fromDivNormalized(axis  , m0.orn()), Vec().fromDivNormalized(axis  , m1.orn())},
+          local_normal[]={Vec().fromDivNormalized(perp  , m0.orn()), Vec().fromDivNormalized(perp  , m1.orn())};
+   CreateSpherical(T, a0, a1, local_anchor, local_axis, local_normal, twist, swing_y, swing_z, collision, false);
    return T;
 }
 Joint& Joint::createSliding(Actor &a0, Actor *a1, C Vec &anchor, C Vec &dir, Flt min, Flt max, Bool collision)
@@ -458,9 +469,9 @@ Joint& Joint::createSliding(Actor &a0, Actor *a1, C Vec &anchor, C Vec &dir, Flt
    Matrix m0            =      a0. matrix(),
           m1            =(a1 ? a1->matrix() : MatrixIdentity);
    Vec    normal        =PerpN(dir),
-          local_anchor[]={Vec(anchor).divNormalized(m0      ), Vec(anchor).divNormalized(m1      )},
-          local_axis  []={Vec(dir   ).divNormalized(m0.orn()), Vec(dir   ).divNormalized(m1.orn())},
-          local_normal[]={Vec(normal).divNormalized(m0.orn()), Vec(normal).divNormalized(m1.orn())};
+          local_anchor[]={Vec().fromDivNormalized(anchor, m0      ), Vec().fromDivNormalized(anchor, m1      )},
+          local_axis  []={Vec().fromDivNormalized(dir   , m0.orn()), Vec().fromDivNormalized(dir   , m1.orn())},
+          local_normal[]={Vec().fromDivNormalized(normal, m0.orn()), Vec().fromDivNormalized(normal, m1.orn())};
    CreateSlider(T, a0, a1, local_anchor, local_axis, local_normal, min, max, collision);
    return T;
 }
@@ -477,22 +488,33 @@ Joint& Joint::createBodyHinge(Actor &bone, Actor &parent, C Vec &anchor, C Vec &
    Matrix m0            =bone  .matrix(),
           m1            =parent.matrix();
    Vec    normal        =PerpN(axis),
-          local_anchor[]={Vec(anchor).divNormalized(m0      ), Vec(anchor).divNormalized(m1      )},
-          local_axis  []={Vec(axis  ).divNormalized(m0.orn()), Vec(axis  ).divNormalized(m1.orn())},
-          local_normal[]={Vec(normal).divNormalized(m0.orn()), Vec(normal).divNormalized(m1.orn())};
+          local_anchor[]={Vec().fromDivNormalized(anchor, m0      ), Vec().fromDivNormalized(anchor, m1      )},
+          local_axis  []={Vec().fromDivNormalized(axis  , m0.orn()), Vec().fromDivNormalized(axis  , m1.orn())},
+          local_normal[]={Vec().fromDivNormalized(normal, m0.orn()), Vec().fromDivNormalized(normal, m1.orn())};
    CreateHinge(T, bone, &parent, local_anchor, local_axis, local_normal, &Vec2(min_angle, max_angle), false, true);
    return T;
 }
-Joint& Joint::createBodySpherical(Actor &bone, Actor &parent, C Vec &anchor, C Vec &axis, Flt swing, Flt twist)
+Joint& Joint::createBodySpherical(Actor &bone, Actor &parent, C Vec &anchor, C Vec &axis, Flt twist, Flt swing)
 {
    del();
    Matrix m0            =bone  .matrix(),
           m1            =parent.matrix();
    Vec    normal        =PerpN(axis),
-          local_anchor[]={Vec(anchor).divNormalized(m0      ), Vec(anchor).divNormalized(m1      )},
-          local_axis  []={Vec(axis  ).divNormalized(m0.orn()), Vec(axis  ).divNormalized(m1.orn())},
-          local_normal[]={Vec(normal).divNormalized(m0.orn()), Vec(normal).divNormalized(m1.orn())};
-   CreateSpherical(T, bone, &parent, local_anchor, local_axis, local_normal, &swing, &twist, false, true);
+          local_anchor[]={Vec().fromDivNormalized(anchor, m0      ), Vec().fromDivNormalized(anchor, m1      )},
+          local_axis  []={Vec().fromDivNormalized(axis  , m0.orn()), Vec().fromDivNormalized(axis  , m1.orn())},
+          local_normal[]={Vec().fromDivNormalized(normal, m0.orn()), Vec().fromDivNormalized(normal, m1.orn())};
+   CreateSpherical(T, bone, &parent, local_anchor, local_axis, local_normal, &twist, &swing, &swing, false, true);
+   return T;
+}
+Joint& Joint::createBodySpherical(Actor &bone, Actor &parent, C Vec &anchor, C Vec &axis, C Vec &perp, Flt twist, Flt swing_y, Flt swing_z)
+{
+   del();
+   Matrix m0            =bone  .matrix(),
+          m1            =parent.matrix();
+   Vec    local_anchor[]={Vec().fromDivNormalized(anchor, m0      ), Vec().fromDivNormalized(anchor, m1      )},
+          local_axis  []={Vec().fromDivNormalized(axis  , m0.orn()), Vec().fromDivNormalized(axis  , m1.orn())},
+          local_normal[]={Vec().fromDivNormalized(perp  , m0.orn()), Vec().fromDivNormalized(perp  , m1.orn())};
+   CreateSpherical(T, bone, &parent, local_anchor, local_axis, local_normal, &twist, &swing_y, &swing_z, false, true);
    return T;
 }
 /******************************************************************************/
@@ -640,6 +662,15 @@ Joint& Joint::hingeDriveGearRatio(Flt ratio)
 /******************************************************************************/
 // IO
 /******************************************************************************/
+enum JOINT_FLAG
+{
+   JOINT_COLLISION=1<<0,
+   JOINT_BODY     =1<<1,
+
+   JOINT_SPHERICAL_LIMIT_TWIST  =1<<2,
+   JOINT_SPHERICAL_LIMIT_SWING_Y=1<<3,
+   JOINT_SPHERICAL_LIMIT_SWING_Z=1<<4,
+};
 Bool Joint::save(File &f)C
 {
    f.cmpUIntV(0); // version
@@ -714,8 +745,8 @@ Bool Joint::save(File &f)C
       case JOINT_SPHERICAL:
       {
          Vec  anchor[2], axis[2], normal[2];
-         Bool collision, limit_swing, limit_twist, body;
-         Flt  swing, twist;
+         Byte flag=0;
+         Flt  twist, swing_y, swing_z;
       #if PHYSX
       #if 0
          PxSphericalJoint &spherical=*_joint->is<PxSphericalJoint>();
@@ -736,8 +767,8 @@ Bool Joint::save(File &f)C
          twist      =limit.twistAngle;
       #else
          PxD6Joint &spherical=*_joint->is<PxD6Joint>();
-	      PxJointLimitCone        swing_limit=spherical.getSwingLimit();
          PxJointAngularLimitPair twist_limit=spherical.getTwistLimit();
+	      PxJointLimitCone        swing_limit=spherical.getSwingLimit();
          Matrix m0=Physx.matrix(spherical.getLocalPose(PxJointActorIndex::eACTOR0)),
                 m1=Physx.matrix(spherical.getLocalPose(PxJointActorIndex::eACTOR1));
          anchor[0]=m0.pos;
@@ -746,33 +777,33 @@ Bool Joint::save(File &f)C
          axis  [1]=m1.x;
          normal[0]=m0.y;
          normal[1]=m1.y;
-         collision  =FlagTest((UInt)spherical.getConstraintFlags(), PxConstraintFlag::eCOLLISION_ENABLED);
-         limit_swing=(spherical.getMotion(PxD6Axis::eSWING1)!=PxD6Motion::eFREE);
-         limit_twist=(spherical.getMotion(PxD6Axis::eTWIST )!=PxD6Motion::eFREE);
-         body       =(swing_limit.restitution>0 || swing_limit.stiffness>0);
-         swing      = swing_limit.yAngle;
-         twist      = twist_limit.upper;
+         if(FlagTest((UInt)spherical.getConstraintFlags(), PxConstraintFlag::eCOLLISION_ENABLED))flag|=JOINT_COLLISION;
+         if(swing_limit.restitution>0 || swing_limit.stiffness>0)flag|=JOINT_BODY;
+         switch(spherical.getMotion(PxD6Axis::eTWIST )){case PxD6Motion::eLOCKED: flag|=JOINT_SPHERICAL_LIMIT_TWIST  ; twist  =0; break;   case PxD6Motion::eLIMITED: flag|=JOINT_SPHERICAL_LIMIT_TWIST  ; twist  =twist_limit. upper; break;}
+         switch(spherical.getMotion(PxD6Axis::eSWING1)){case PxD6Motion::eLOCKED: flag|=JOINT_SPHERICAL_LIMIT_SWING_Y; swing_y=0; break;   case PxD6Motion::eLIMITED: flag|=JOINT_SPHERICAL_LIMIT_SWING_Y; swing_y=swing_limit.yAngle; break;}
+         switch(spherical.getMotion(PxD6Axis::eSWING2)){case PxD6Motion::eLOCKED: flag|=JOINT_SPHERICAL_LIMIT_SWING_Z; swing_z=0; break;   case PxD6Motion::eLIMITED: flag|=JOINT_SPHERICAL_LIMIT_SWING_Z; swing_z=swing_limit.zAngle; break;}
       #endif
       #else
          if(btPoint2PointConstraint *p2p=CAST(btPoint2PointConstraint, _joint))
          {
             anchor[0]=Bullet.vec(p2p->getPivotInA()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyA()))anchor[0].divNormalized(rb->offset); axis[0].set(0, 0, 1); normal[0].set(1, 0, 0);
             anchor[1]=Bullet.vec(p2p->getPivotInB()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyB()))anchor[1].divNormalized(rb->offset); axis[1].set(0, 0, 1); normal[1].set(1, 0, 0);
-            limit_swing=limit_twist=false;
+            limit_twist=limit_swing=false;
          }else
          {
             btConeTwistConstraint *cone=CAST(btConeTwistConstraint, _joint);
             Matrix m=Bullet.matrix(cone->getAFrame()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyA()))m.divNormalized(rb->offset); anchor[0]=m.pos; axis[0]=m.x; normal[0]=m.z;
                    m=Bullet.matrix(cone->getBFrame()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyB()))m.divNormalized(rb->offset); anchor[1]=m.pos; axis[1]=m.x; normal[1]=m.z;
-            swing=cone->getSwingSpan1(); limit_swing=(swing!=FLT_MAX);
             twist=cone->getTwistSpan (); limit_twist=(twist!=FLT_MAX);
+            swing=cone->getSwingSpan1(); limit_swing=(swing!=FLT_MAX);
          }
          collision=true; btRigidBody &rb=_joint->getRigidBodyA(); REP(rb.getNumConstraintRefs())if(rb.getConstraintRef(i)==_joint){collision=false; break;}
          body     =false;
       #endif
-         f<<anchor<<axis<<normal<<collision<<limit_swing<<limit_twist<<body;
-         if(limit_swing)f<<swing;
-         if(limit_twist)f<<twist;
+         f<<anchor<<axis<<normal<<flag;
+         if(flag&JOINT_SPHERICAL_LIMIT_TWIST  )f<<twist;
+         if(flag&JOINT_SPHERICAL_LIMIT_SWING_Y)f<<swing_y;
+         if(flag&JOINT_SPHERICAL_LIMIT_SWING_Z)f<<swing_z;
       }break;
 
       case JOINT_SLIDER:
@@ -886,13 +917,14 @@ Bool Joint::load(File &f, Actor &a0, Actor *a1)
             case JOINT_SPHERICAL:
             {
                Vec  anchor[2], axis[2], normal[2];
-               Bool collision, limit_swing, limit_twist, body;
-               Flt  swing, twist;
-               f>>anchor>>axis>>normal>>collision>>limit_swing>>limit_twist>>body;
-               if(limit_swing)f>>swing;
-               if(limit_twist)f>>twist;
+               Byte flag;
+               Flt  twist, swing_y, swing_z;
+               f>>anchor>>axis>>normal>>flag;
+               if(flag&JOINT_SPHERICAL_LIMIT_TWIST  )f>>twist;
+               if(flag&JOINT_SPHERICAL_LIMIT_SWING_Y)f>>swing_y;
+               if(flag&JOINT_SPHERICAL_LIMIT_SWING_Z)f>>swing_z;
 
-               CreateSpherical(T, a0, a1, anchor, axis, normal, limit_swing ? &swing : null, limit_twist ? &twist : null, collision, body);
+               CreateSpherical(T, a0, a1, anchor, axis, normal, FlagTest(flag, JOINT_SPHERICAL_LIMIT_TWIST) ? &twist : null, FlagTest(flag, JOINT_SPHERICAL_LIMIT_SWING_Y) ? &swing_y : null, FlagTest(flag, JOINT_SPHERICAL_LIMIT_SWING_Z) ? &swing_z : null, FlagTest(flag, JOINT_COLLISION), FlagTest(flag, JOINT_BODY));
             }break;
 
             case JOINT_SLIDER:

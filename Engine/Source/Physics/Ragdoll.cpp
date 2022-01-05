@@ -134,25 +134,34 @@ Bool Ragdoll::createTry(C AnimatedSkeleton &anim_skel, Flt scale, Flt density, B
             {
                Bone     &rp=    _bones[   rbon_parent];
              C SkelBone &sp=skel.bones[rp.skel_bone  ];
-               if(sb.type==BONE_HEAD)
+               const Flt HeadNeckTwist=DegToRad(45);
+               const Flt HeadNeckPitch=DegToRad(45);
+               const Flt HeadNeckRoll =DegToRad(45);
+               switch(sb.type)
                {
-                  if(sp.type==BONE_NECK)_joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, DegToRad(30), DegToRad(35));
-                  else                  _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, DegToRad(50), DegToRad(40));
-               }else
-               if(sb.type==BONE_NECK                         )_joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, DegToRad( 20), DegToRad( 5));else
-               if(sb.type==BONE_SHOULDER                     )_joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, DegToRad(  5), DegToRad( 5));else
-               if(sb.type==BONE_UPPER_ARM                    )_joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, DegToRad( 80), DegToRad(30));else
-               if(sb.type==BONE_UPPER_LEG                    )_joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, DegToRad(155), DegToRad(25));else
-               if(sb.type==BONE_SPINE                        )_joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, DegToRad( 40), DegToRad(30));else
+                  case BONE_HEAD     : _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, HeadNeckTwist/2, HeadNeckRoll/2, HeadNeckPitch/2); break;
+                  case BONE_NECK     : _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, HeadNeckTwist/2, HeadNeckRoll/2, HeadNeckPitch/2); break;
+                  case BONE_SHOULDER : _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir,          DegToRad( 0), DegToRad(15)); break;
+                  case BONE_UPPER_ARM: _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir,          DegToRad(45), DegToRad(90)); break;
+                  case BONE_UPPER_LEG: _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, DegToRad(45), DegToRad(45), DegToRad(90+45)/2); break;
+                  case BONE_FOOT     : _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, DegToRad(30), DegToRad( 5), DegToRad(45)/2); break;
+                  case BONE_HAND     : _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, DegToRad( 0), DegToRad(45)/2, DegToRad(60)); break;
+                  case BONE_SPINE    : _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, DegToRad(45)/2.5f, DegToRad(45)/2.5f, DegToRad(60)/2.5f); break;
 
-               if(sb.type==BONE_FOOT                         )_joints.New().createBodyHinge    (rb.actor, rp.actor, sb.pos*_scale, Vec(1, 0,0), -DegToRad(45), DegToRad( 45));else
-               if(sb.type==BONE_HAND      && sb.type_index< 0)_joints.New().createBodyHinge    (rb.actor, rp.actor, sb.pos*_scale, Vec(0, 1,0), -DegToRad(80), DegToRad( 80));else
-               if(sb.type==BONE_HAND      && sb.type_index>=0)_joints.New().createBodyHinge    (rb.actor, rp.actor, sb.pos*_scale, Vec(0,-1,0), -DegToRad(80), DegToRad( 80));else
-               if(sb.type==BONE_LOWER_ARM && sb.type_index< 0)_joints.New().createBodyHinge    (rb.actor, rp.actor, sb.pos*_scale, Vec(0, 1,0),            0 , DegToRad(140));else
-               if(sb.type==BONE_LOWER_ARM && sb.type_index>=0)_joints.New().createBodyHinge    (rb.actor, rp.actor, sb.pos*_scale, Vec(0,-1,0),            0 , DegToRad(140));else
-               if(sb.type==BONE_LOWER_LEG                    )_joints.New().createBodyHinge    (rb.actor, rp.actor, sb.pos*_scale, Vec(1, 0,0),            0 , DegToRad(150));else
+                  case BONE_LOWER_ARM:
+                  {
+                   C Vec &axis=sp.perp;
+                    _joints.New().createBodyHinge(rb.actor, rp.actor, sb.pos*_scale, axis, 0, DegToRad(140));
+                  }break;
 
-                                                              _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, DegToRad(40), DegToRad(30));
+                  case BONE_LOWER_LEG:
+                  {
+                   C Vec &axis=sp.cross();
+                    _joints.New().createBodyHinge(rb.actor, rp.actor, sb.pos*_scale, axis, 0, DegToRad(140));
+                  }break;
+
+                  default: _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, DegToRad(30), DegToRad(30)); break;
+               }
             }
          }
 
