@@ -72,8 +72,9 @@ struct Param // Parameter
 
    Param& setTypeValue(C Param &src); // set type and value of this parameter to 'src'
 
-   Param&     setAsIDArray(C CMemPtr<UID> &ids, Bool allow_PARAM_ID_type=true); // set type to PARAM_ID_ARRAY and set value to 'ids', 'allow_PARAM_ID_type'=if number of id's is equal to 1 then use PARAM_ID type instead
-   Param& includeAsIDArray(C CMemPtr<UID> &ids, Bool allow_PARAM_ID_type=true); // set type to PARAM_ID_ARRAY and set value to 'ids', 'allow_PARAM_ID_type'=if number of id's is equal to 1 then use PARAM_ID type instead, this method preserves existing ID's and adds 'ids' which aren't present yet
+   Param&     setAsIDArray(C CMemPtr<UID> &ids, Bool allow_PARAM_ID_type=true); // set type to PARAM_ID_ARRAY and set value to      'ids', 'allow_PARAM_ID_type'=if number of id's is equal to 1 then use PARAM_ID type instead
+   Param& includeAsIDArray(C CMemPtr<UID> &ids, Bool allow_PARAM_ID_type=true); // set type to PARAM_ID_ARRAY and set value to      'ids', 'allow_PARAM_ID_type'=if number of id's is equal to 1 then use PARAM_ID type instead, this method preserves existing ID's and adds    'ids' which aren't present yet
+   Param& excludeAsIDArray(C CMemPtr<UID> &ids, Bool allow_PARAM_ID_type=true); // set type to PARAM_ID_ARRAY and set value without 'ids', 'allow_PARAM_ID_type'=if number of id's is equal to 1 then use PARAM_ID type instead, this method preserves existing ID's and removes 'ids'
 
    // io
    Bool save(File &f, CChar *path=null)C; // save, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail

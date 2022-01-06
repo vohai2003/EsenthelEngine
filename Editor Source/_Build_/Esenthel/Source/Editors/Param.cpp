@@ -247,7 +247,7 @@ ObjClassEditor ObjClassEdit;
                Str desc;
                if(ParamTypeID(src.type))
                {
-                  desc="Parameter Value\nDrag and drop Project Elements here or manually type an ID \"UID(..)\"\nYou can drag and drop multiple elements at the same time.\nHold Ctrl during drag and drop to add selected elements to existing value.\nCtrl+LeftClick to open the element.";
+                  desc="Parameter Value\nDrag and drop Project Elements here or manually type an ID \"UID(..)\"\nYou can drag and drop multiple elements at the same time.\nHold Ctrl during drag and drop to add selected elements to existing value.\nHold Alt during drag and drop to remove selected elements from existing value.\nCtrl+LeftClick to open the element.";
                   if(!multi_val)
                   {
                      bool count=(src.IDs()>1);
@@ -1414,6 +1414,14 @@ ObjClassEditor ObjClassEdit;
       }
       return changed;
    }
+   bool ParamEditor::ExcludeID(ParamEditor &pe, EditObject &obj, C ParamIDs &src)
+   {
+      bool changed=false; REPA(obj)
+      {
+         EditParam &param=obj[i]; if(ParamCompatible(param, src) && !param.removed){param.excludeAsIDArray(ConstCast(src.ids)); changed=true;}
+      }
+      return changed;
+   }
    void ParamEditor::drag(Memc<UID> &elms, GuiObj* &obj, C Vec2 &screen_pos)
    {
       if(elms.elms() && (contains(obj) || param_window.contains(obj)))
@@ -1422,7 +1430,7 @@ ObjClassEditor ObjClassEdit;
          {
             if(ParamWindow::Param *src=findParam(obj))
             {
-               bool include=Kb.ctrl(); // if Ctrl pressed then include ID's
+               bool include=Kb.ctrl(), exclude=Kb.alt(); // if Ctrl pressed then include ID's, if Alt pressed then exclude ID's
                Memt<UID> publishable; FREPA(elms)if(Elm *elm=Proj.findElm(elms[i]))if(ElmPublish(elm->type))publishable.add(elm->id);
                if(publishable.elms())
                   if(!src->base || ParamTypeID(src->src.type)) // only if there's no base, or it's of PARAM_ID* type
@@ -1433,14 +1441,14 @@ ObjClassEditor ObjClassEdit;
                      REPA(Selection)
                      {
                         Obj &obj=Selection[i];
-                        REPA(obj.params){EditParam &param=obj.params[i]; if(ParamCompatible(param, src->src) && !param.removed && (src->multi_obj ? true : param.id==src->id)){obj.setUndo(); if(include)param.includeAsIDArray(publishable);else param.setAsIDArray(publishable); obj.setChanged();}}
+                        REPA(obj.params){EditParam &param=obj.params[i]; if(ParamCompatible(param, src->src) && !param.removed && (src->multi_obj ? true : param.id==src->id)){obj.setUndo(); if(include)param.includeAsIDArray(publishable);else if(exclude)param.excludeAsIDArray(publishable);else param.setAsIDArray(publishable); obj.setChanged();}}
                      }
                   }else
                   {
-                     REPA(*p){EditParam &param=(*p)[i]; if(param.id==src->id && !param.removed){setUndo(src); if(include)param.includeAsIDArray(publishable);else param.setAsIDArray(publishable); setChanged(false); break;}}
+                     REPA(*p){EditParam &param=(*p)[i]; if(param.id==src->id && !param.removed){setUndo(src); if(include)param.includeAsIDArray(publishable);else if(exclude)param.excludeAsIDArray(publishable);else param.setAsIDArray(publishable); setChanged(false); break;}}
                   }
                   ParamIDs data; data.name=src->src.name; data.type=src->src.type; data.ids=publishable;
-                  multiFunc(include ? IncludeID : SetID, data);
+                  multiFunc(include ? IncludeID : exclude ? ExcludeID : SetID, data);
                   toGui();
                }
             }else

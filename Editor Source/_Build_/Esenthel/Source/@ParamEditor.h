@@ -293,6 +293,7 @@ public:
 
    static bool SetID(ParamEditor &pe, EditObject &obj, C ParamIDs &src);
    static bool IncludeID(ParamEditor &pe, EditObject &obj, C ParamIDs &src);
+   static bool ExcludeID(ParamEditor &pe, EditObject &obj, C ParamIDs &src);
    void drag(Memc<UID> &elms, GuiObj* &obj, C Vec2 &screen_pos);
 
 public:

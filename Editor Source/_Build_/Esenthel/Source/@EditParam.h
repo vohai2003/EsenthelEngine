@@ -28,6 +28,7 @@ class EditParam : Param
    EditParam& forceColor      (C Color &v                           );  
    EditParam&     setAsIDArray(C MemPtr<UID> &ids                   );  
    EditParam& includeAsIDArray(C MemPtr<UID> &ids                   );  
+   EditParam& excludeAsIDArray(C MemPtr<UID> &ids                   );  
    EditParam& setType         (PARAM_TYPE type, Enum *enum_type=null);  
    EditParam& setTypeValue    (C Param &src                         );  
    void       nameTypeValueUTC(                                     );  

@@ -465,6 +465,17 @@ Param& Param::includeAsIDArray(C CMemPtr<UID> &ids, Bool allow_PARAM_ID_type)
    }
    return setAsIDArray(ids, allow_PARAM_ID_type);
 }
+Param& Param::excludeAsIDArray(C CMemPtr<UID> &ids, Bool allow_PARAM_ID_type)
+{
+   if(Int id_num=IDs()) // if have any existing ID's
+   {
+      Memt<UID> temp; temp.setNum(id_num);
+      if(type==PARAM_ID)temp[0]=value.id;else temp.copyFrom((UID*)value.s());
+      FREPA(ids)temp.exclude(ids[i], true); // exclude
+      return setAsIDArray(temp, allow_PARAM_ID_type);
+   }
+   return setAsIDArray(null, allow_PARAM_ID_type);
+}
 /******************************************************************************/
 Bool Param::save(File &f, CChar *path)C
 {

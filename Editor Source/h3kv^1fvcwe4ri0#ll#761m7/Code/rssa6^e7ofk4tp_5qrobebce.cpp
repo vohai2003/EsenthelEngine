@@ -48,6 +48,7 @@ class EditParam : Param
    EditParam& forceColor      (C Color &v                           ) {setType(PARAM_COLOR); value.c=v; value_time.getUTC(); return T;}
    EditParam&     setAsIDArray(C MemPtr<UID> &ids                   ) {super.    setAsIDArray(ids); type_time.getUTC(); value_time.getUTC(); return T;}
    EditParam& includeAsIDArray(C MemPtr<UID> &ids                   ) {super.includeAsIDArray(ids); type_time.getUTC(); value_time.getUTC(); return T;}
+   EditParam& excludeAsIDArray(C MemPtr<UID> &ids                   ) {super.excludeAsIDArray(ids); type_time.getUTC(); value_time.getUTC(); return T;}
    EditParam& setType         (PARAM_TYPE type, Enum *enum_type=null) {super.setType((type==PARAM_ID) ? PARAM_ID_ARRAY : type, enum_type); type_time.getUTC(); return T;}
    EditParam& setTypeValue    (C Param &src                         ) {super.setTypeValue(src); type_time.getUTC(); value_time.getUTC(); return T;}
    void       nameTypeValueUTC(                                     ) {name_time.getUTC();      type_time.getUTC(); value_time.getUTC();}

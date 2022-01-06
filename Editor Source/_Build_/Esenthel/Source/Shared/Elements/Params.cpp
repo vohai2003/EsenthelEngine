@@ -45,6 +45,7 @@ Cache<EditObject> EditObjects;
    EditParam& EditParam::forceColor(C Color &v                           ) {setType(PARAM_COLOR); value.c=v; value_time.getUTC(); return T;}
    EditParam&     EditParam::setAsIDArray(C MemPtr<UID> &ids                   ) {super::    setAsIDArray(ids); type_time.getUTC(); value_time.getUTC(); return T;}
    EditParam& EditParam::includeAsIDArray(C MemPtr<UID> &ids                   ) {super::includeAsIDArray(ids); type_time.getUTC(); value_time.getUTC(); return T;}
+   EditParam& EditParam::excludeAsIDArray(C MemPtr<UID> &ids                   ) {super::excludeAsIDArray(ids); type_time.getUTC(); value_time.getUTC(); return T;}
    EditParam& EditParam::setType(PARAM_TYPE type, Enum *enum_type) {super::setType((type==PARAM_ID) ? PARAM_ID_ARRAY : type, enum_type); type_time.getUTC(); return T;}
    EditParam& EditParam::setTypeValue(C Param &src                         ) {super::setTypeValue(src); type_time.getUTC(); value_time.getUTC(); return T;}
    void       EditParam::nameTypeValueUTC(                                     ) {name_time.getUTC();      type_time.getUTC(); value_time.getUTC();}
