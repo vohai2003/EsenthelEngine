@@ -140,9 +140,11 @@ Bool Ragdoll::createTry(C AnimatedSkeleton &anim_skel, Flt scale, Flt density, B
          rb.actor.adamping(4.0f);
          rb.actor. damping(0.5f);
          rb.actor.sleepEnergy(0.01f);
+      #if PHYSX
          rb.actor._dynamic->setMaxDepenetrationVelocity(0.1f);
          rb.actor._dynamic->setSolverIterationCounts(6, 6);
        //rb.actor._dynamic->setStabilizationThreshold(1.0f); // may need enabling eENABLE_STABILIZATION
+      #endif
       }
 
       if(!kinematic)
