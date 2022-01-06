@@ -97,7 +97,7 @@ Bool Ragdoll::createTry(C AnimatedSkeleton &anim_skel, Flt scale, Flt density, B
              C SkelBone *b=skel.findBone(BONE_FINGER, (sbon.type_index>=0) ? 2 : -3); // find middle finger (2 for right, -3 for left hand)
                if(b){to=b->to(); width*=0.6f;}
             }else
-            if(sbon.type==BONE_SPINE && sbon.type_sub==0)
+            if(sbon.type==BONE_SPINE && sbon.type_index==0 && sbon.type_sub==0)
             {
                body=_bones.elms();
               _resets.add(i); // add main bone for resetting
