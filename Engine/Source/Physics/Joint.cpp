@@ -340,7 +340,7 @@ Joint& Joint::createSpherical(Actor &a0, Actor *a1, C Vec local_anchor[2], C Vec
             Flt f=FLT_MAX;
             cone->setUserConstraintId((Int&)f);
             cone->setUserConstraintType(0);
-            cone->setLimit(swing ? *swing : FLT_MAX, swing ? *swing : FLT_MAX, twist ? *twist : FLT_MAX);
+            cone->setLimit(swing_y ? *swing_y : FLT_MAX, swing_z ? *swing_z : FLT_MAX, twist ? *twist : FLT_MAX);
 
             WriteLock lock(Physics._rws);
             if(Bullet.world)Bullet.world->addConstraint(cone, !collision);
@@ -767,8 +767,9 @@ Bool Joint::save(File &f)C
             btConeTwistConstraint *cone=CAST(btConeTwistConstraint, _joint);
             Matrix m=Bullet.matrix(cone->getAFrame()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyA()))m.divNormalized(rb->offset); anchor[0]=m.pos; axis[0]=m.x; normal[0]=m.z;
                    m=Bullet.matrix(cone->getBFrame()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyB()))m.divNormalized(rb->offset); anchor[1]=m.pos; axis[1]=m.x; normal[1]=m.z;
-            twist=cone->getTwistSpan (); limit_twist=(twist!=FLT_MAX);
-            swing=cone->getSwingSpan1(); limit_swing=(swing!=FLT_MAX);
+            twist  =cone->getTwistSpan (); if(twist  !=FLT_MAX)flag|=JOINT_SPHERICAL_LIMIT_TWIST;
+            swing_y=cone->getSwingSpan1(); if(swing_y!=FLT_MAX)flag|=JOINT_SPHERICAL_LIMIT_SWING_Y;
+            swing_z=cone->getSwingSpan2(); if(swing_z!=FLT_MAX)flag|=JOINT_SPHERICAL_LIMIT_SWING_Z;
          }
          btRigidBody &rb=_joint->getRigidBodyA(); REP(rb.getNumConstraintRefs())if(rb.getConstraintRef(i)==_joint)goto no_collision; flag|=JOINT_COLLISION; no_collision:;
       #endif
