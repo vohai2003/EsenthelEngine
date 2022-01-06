@@ -304,7 +304,7 @@ Joint& Joint::createSpherical(Actor &a0, Actor *a1, C Vec local_anchor[2], C Vec
 #else
    if(a0._actor)
    {
-      if(!swing && !twist)
+      if(!twist && !swing_y && !swing_z)
       {
          btPoint2PointConstraint *p2p=null;
          if(a1 && a1->_actor)
@@ -762,7 +762,6 @@ Bool Joint::save(File &f)C
          {
             anchor[0]=Bullet.vec(p2p->getPivotInA()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyA()))anchor[0].divNormalized(rb->offset); axis[0].set(0, 0, 1); normal[0].set(1, 0, 0);
             anchor[1]=Bullet.vec(p2p->getPivotInB()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyB()))anchor[1].divNormalized(rb->offset); axis[1].set(0, 0, 1); normal[1].set(1, 0, 0);
-            limit_twist=limit_swing=false;
          }else
          {
             btConeTwistConstraint *cone=CAST(btConeTwistConstraint, _joint);
@@ -771,7 +770,7 @@ Bool Joint::save(File &f)C
             twist=cone->getTwistSpan (); limit_twist=(twist!=FLT_MAX);
             swing=cone->getSwingSpan1(); limit_swing=(swing!=FLT_MAX);
          }
-         collision=true; btRigidBody &rb=_joint->getRigidBodyA(); REP(rb.getNumConstraintRefs())if(rb.getConstraintRef(i)==_joint){collision=false; break;}
+         btRigidBody &rb=_joint->getRigidBodyA(); REP(rb.getNumConstraintRefs())if(rb.getConstraintRef(i)==_joint)goto no_collision; flag|=JOINT_COLLISION; no_collision:;
       #endif
          f<<anchor<<axis<<normal<<flag;
          if(flag&JOINT_SPHERICAL_LIMIT_TWIST  )f<<twist;
