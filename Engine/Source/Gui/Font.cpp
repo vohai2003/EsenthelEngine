@@ -758,6 +758,8 @@ struct FontChar
 struct FontCreateBase : Font::Params
 {
    MemtN<SystemFont, TOTAL_CREATE_FONTS> fonts;
+
+   FontCreateBase(C Params &src) : Params(src) {}
 };
 #if USE_FREE_TYPE
 struct FreeTypeDrawContext
