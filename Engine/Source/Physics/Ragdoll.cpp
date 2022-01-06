@@ -45,6 +45,28 @@ Ragdoll& Ragdoll::del()
   _aggr  .del(); // delete aggregate after actors, so they won't be re-inserted into scene when aggregate is deleted
    zero(); return T;
 }
+static void CreateHinge(Joint &joint, Actor &bone, Actor &parent, C Vec &anchor, C Vec &axis, Flt min_angle, Flt max_angle)
+{
+   joint.createHinge(bone, &parent, anchor, axis, min_angle, max_angle, false);
+}
+static void CreateSpherical(Joint &joint, Actor &bone, Actor &parent, C Vec &anchor, C Vec &axis, Flt twist, Flt swing)
+{
+   joint.createSpherical(bone, &parent, anchor, axis, &twist, &swing, false);
+}
+static void CreateSpherical(Joint &joint, Actor &bone, Actor &parent, C Vec &anchor, C Vec &axis, C Vec &perp, Flt twist, Flt swing_y, Flt swing_z)
+{
+   joint.createSpherical(bone, &parent, anchor, axis, perp, &twist, &swing_y, &swing_z, false);
+}
+static void CreateSpherical(Joint &joint, Actor &bone, Actor &parent, C Vec &anchor, C Orient &bone_orn, C Orient &joint_orn, Flt twist, Flt swing_y, Flt swing_z) // 'bone_orn'=bone world orientation, 'joint_orn'=joint world orientation (the center of relaxed position, around which the bone can rotate)
+{ // here 'bone' and 'parent' matrix is identity
+ C Vec &axis=joint_orn.dir ,
+       &perp=joint_orn.perp;
+   Matrix3 m; GetTransform(m, joint_orn, bone_orn);
+   Vec local_anchor[]={anchor, anchor},
+       local_axis  []={axis*m, axis  },
+       local_normal[]={perp*m, perp  };
+   joint.createSpherical(bone, &parent, local_anchor, local_axis, local_normal, &twist, &swing_y, &swing_z, false);
+}
 Bool Ragdoll::createTry(C AnimatedSkeleton &anim_skel, Flt scale, Flt density, Bool kinematic)
 {
    del();
@@ -119,7 +141,7 @@ Bool Ragdoll::createTry(C AnimatedSkeleton &anim_skel, Flt scale, Flt density, B
          rb.actor. damping(0.5f);
          rb.actor.sleepEnergy(0.01f);
          rb.actor._dynamic->setMaxDepenetrationVelocity(0.1f);
-         rb.actor._dynamic->setSolverIterationCounts(4, 4);
+         rb.actor._dynamic->setSolverIterationCounts(6, 6);
        //rb.actor._dynamic->setStabilizationThreshold(1.0f); // may need enabling eENABLE_STABILIZATION
       }
 
@@ -142,14 +164,14 @@ Bool Ragdoll::createTry(C AnimatedSkeleton &anim_skel, Flt scale, Flt density, B
                const Flt HeadNeckRoll =DegToRad(45);
                switch(sb.type)
                {
-                  case BONE_HEAD     : _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, HeadNeckTwist/2, HeadNeckRoll/2, HeadNeckPitch/2); break;
-                  case BONE_NECK     : _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, HeadNeckTwist/2, HeadNeckRoll/2, HeadNeckPitch/2); break;
-                  case BONE_SHOULDER : _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir,          DegToRad( 0), DegToRad(15)); break;
-                  case BONE_UPPER_ARM: _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir,          DegToRad(45), DegToRad(90)); break;
-                  case BONE_UPPER_LEG: _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, DegToRad(45), DegToRad(45), DegToRad(90+45)/2); break;
-                  case BONE_FOOT     : _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, DegToRad(30), DegToRad( 5), DegToRad(45)/2); break;
-                  case BONE_HAND     : _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, DegToRad( 0), DegToRad(45)/2, DegToRad(60)); break;
-                  case BONE_SPINE    : _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, DegToRad(45)/2.5f, DegToRad(45)/2.5f, DegToRad(60)/2.5f); break;
+                  case BONE_SPINE    : CreateSpherical(_joints.New(), rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, DegToRad(45)/2.5f, DegToRad(45)/2.5f, DegToRad(60)/2.5f); break;
+                  case BONE_NECK     : CreateSpherical(_joints.New(), rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, HeadNeckTwist/2, HeadNeckRoll/2, HeadNeckPitch/2); break;
+                  case BONE_HEAD     : CreateSpherical(_joints.New(), rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, HeadNeckTwist/2, HeadNeckRoll/2, HeadNeckPitch/2); break;
+                  case BONE_SHOULDER : CreateSpherical(_joints.New(), rb.actor, rp.actor, sb.pos*_scale, sb.dir,          DegToRad( 0), DegToRad(15)); break;
+                  case BONE_UPPER_ARM: CreateSpherical(_joints.New(), rb.actor, rp.actor, sb.pos*_scale, sb, Orient(Vec((sb.type_index>=0) ? SQRT2_2 : -SQRT2_2, 0, SQRT2_2), Vec(0,1,0)), DegToRad(45), DegToRad(45), DegToRad(90)); break;
+                  case BONE_UPPER_LEG: CreateSpherical(_joints.New(), rb.actor, rp.actor, sb.pos*_scale, sb, Orient(Vec(0, -SQRT2_2, SQRT2_2), Vec(0, SQRT2_2, SQRT2_2)), DegToRad(45), DegToRad(45), DegToRad(45)); break;
+                  case BONE_HAND     : CreateSpherical(_joints.New(), rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, DegToRad( 0), DegToRad(45)/2, DegToRad(60)); break;
+                  case BONE_FOOT     : CreateSpherical(_joints.New(), rb.actor, rp.actor, sb.pos*_scale, sb.dir, sb.perp, DegToRad(30), DegToRad( 5), DegToRad(45)/2); break;
 
                   case BONE_LOWER_ARM:
                   {
@@ -159,7 +181,7 @@ Bool Ragdoll::createTry(C AnimatedSkeleton &anim_skel, Flt scale, Flt density, B
                   #else // optimized
                      Flt angle_offset=Angle(sb.dir, sp.dir, Cross(sp.dir, axis));
                   #endif
-                    _joints.New().createBodyHinge(rb.actor, rp.actor, sb.pos*_scale, axis, 0+angle_offset, DegToRad(140)+angle_offset);
+                     CreateHinge(_joints.New(), rb.actor, rp.actor, sb.pos*_scale, axis, 0+angle_offset, DegToRad(140)+angle_offset);
                   }break;
 
                   case BONE_LOWER_LEG:
@@ -170,10 +192,10 @@ Bool Ragdoll::createTry(C AnimatedSkeleton &anim_skel, Flt scale, Flt density, B
                   #else // optimized
                      Flt angle_offset=Angle(sb.dir, sp.dir, sp.perp);
                   #endif
-                    _joints.New().createBodyHinge(rb.actor, rp.actor, sb.pos*_scale, axis, 0+angle_offset, DegToRad(140)+angle_offset);
+                     CreateHinge(_joints.New(), rb.actor, rp.actor, sb.pos*_scale, axis, 0+angle_offset, DegToRad(140)+angle_offset);
                   }break;
 
-                  default: _joints.New().createBodySpherical(rb.actor, rp.actor, sb.pos*_scale, sb.dir, DegToRad(30), DegToRad(30)); break;
+                  default: CreateSpherical(_joints.New(), rb.actor, rp.actor, sb.pos*_scale, sb.dir, DegToRad(30), DegToRad(30)); break;
                }
             }
          }

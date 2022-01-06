@@ -196,8 +196,9 @@ Joint& Joint::create(Actor &a0, Actor *a1)
    return T;
 }
 /******************************************************************************/
-static void CreateHinge(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2], C Vec local_axis[2], C Vec local_normal[2], C Vec2 *angle_min_max, Bool collision)
+Joint& Joint::createHinge(Actor &a0, Actor *a1, C Vec local_anchor[2], C Vec local_axis[2], C Vec local_normal[2], C Vec2 *angle_min_max, Bool collision)
 {
+   del();
 #if PHYSX
    Matrix m0; m0.pos=local_anchor[0]; m0.x=local_axis[0]; m0.y=local_normal[0]; m0.z=Cross(m0.x, m0.y);
    Matrix m1; m1.pos=local_anchor[1]; m1.x=local_axis[1]; m1.y=local_normal[1]; m1.z=Cross(m1.x, m1.y);
@@ -217,7 +218,7 @@ static void CreateHinge(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2
 
       PxJointAngularLimitPair limit(angle_min_max ? -angle_min_max->y : 0, angle_min_max ? -angle_min_max->x : 0); // here order is reversed to pass max first
       limit.restitution=BOUNCE; limit.stiffness=STIFFNESS; limit.damping=DAMPING; hinge->setLimit(limit);
-      joint._joint=hinge;
+     _joint=hinge;
    }
 #else
    if(a0._actor)
@@ -232,7 +233,7 @@ static void CreateHinge(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2
       {
          hinge=new btHingeConstraint(*a0._actor, Bullet.matrix(m0)); hinge->getBFrame()=Bullet.matrix(m1);
       }
-      if(joint._joint=hinge)
+      if(_joint=hinge)
       {
          Flt f=FLT_MAX;
          hinge->setUserConstraintId((Int&)f);
@@ -244,10 +245,12 @@ static void CreateHinge(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2
       }
    }
 #endif
+   return T;
 }
 /******************************************************************************/
-static void CreateSpherical(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2], C Vec local_axis[2], C Vec local_normal[2], C Flt *twist, C Flt *swing_y, C Flt *swing_z, Bool collision)
+Joint& Joint::createSpherical(Actor &a0, Actor *a1, C Vec local_anchor[2], C Vec local_axis[2], C Vec local_normal[2], C Flt *twist, C Flt *swing_y, C Flt *swing_z, Bool collision)
 {
+   del();
 #if PHYSX
 #if 0 // PxSphericalJoint
    Matrix m0; m0.pos=local_anchor[0]; m0.x=local_axis[0]; m0.y=local_normal[0]; m0.z=Cross(m0.x, m0.y);
@@ -263,7 +266,7 @@ static void CreateSpherical(Joint &joint, Actor &a0, Actor *a1, C Vec local_anch
       Flt twist_val=(twist ? Mid(*twist, EPS, PI-EPS) : EPS);
       PxJointLimitCone limit(swing_val, swing_val); limit.twist=twist_val; limit.restitution=BOUNCE; limit.stiffness=STIFFNESS; limit.damping=DAMPING;
       spherical->setLimitCone(limit);
-      joint._joint=spherical;
+     _joint=spherical;
    }
 #else // PxD6Joint
    Matrix m0; m0.pos=local_anchor[0]; m0.x=local_axis[0]; m0.y=local_normal[0]; m0.z=Cross(m0.x, m0.y);
@@ -295,7 +298,7 @@ static void CreateSpherical(Joint &joint, Actor &a0, Actor *a1, C Vec local_anch
                                 swing_z ? Mid(*swing_z, EPS, PI-EPS) : PI_2); limit.restitution=BOUNCE; limit.stiffness=STIFFNESS; limit.damping=DAMPING;
          spherical->setSwingLimit(limit);
       }
-      joint._joint=spherical;
+     _joint=spherical;
    }
 #endif
 #else
@@ -311,7 +314,7 @@ static void CreateSpherical(Joint &joint, Actor &a0, Actor *a1, C Vec local_anch
          {
             p2p=new btPoint2PointConstraint(*a0._actor, Bullet.vec(local_anchor[0]*a0._actor->offset)); p2p->setPivotB(Bullet.vec(local_anchor[1]));
          }
-         if(joint._joint=p2p)
+         if(_joint=p2p)
          {
             Flt f=FLT_MAX;
             p2p->setUserConstraintId((Int&)f);
@@ -332,7 +335,7 @@ static void CreateSpherical(Joint &joint, Actor &a0, Actor *a1, C Vec local_anch
          {
             cone=new btConeTwistConstraint(*a0._actor, Bullet.matrix(m0)); cone->getBFrame()=Bullet.matrix(m1);
          }
-         if(joint._joint=cone)
+         if(_joint=cone)
          {
             Flt f=FLT_MAX;
             cone->setUserConstraintId((Int&)f);
@@ -345,10 +348,12 @@ static void CreateSpherical(Joint &joint, Actor &a0, Actor *a1, C Vec local_anch
       }
    }
 #endif
+   return T;
 }
 /******************************************************************************/
 static void CreateSlider(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2], C Vec local_axis[2], C Vec local_normal[2], Flt min, Flt max, Bool collision)
 {
+   joint.del();
 #if PHYSX
    Matrix m0; m0.pos=local_anchor[0]; m0.x=local_axis[0]; m0.y=local_normal[0]; m0.z=Cross(m0.x, m0.y);
    Matrix m1; m1.pos=local_anchor[1]; m1.x=local_axis[1]; m1.y=local_normal[1]; m1.z=Cross(m1.x, m1.y);
@@ -392,6 +397,7 @@ static void CreateSlider(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[
 /******************************************************************************/
 static void CreateDistance(Joint &joint, Actor &a0, Actor *a1, C Vec local_anchor[2], Flt min, Flt max, C Spring *spring, Bool collision)
 {
+   joint.del();
 #if PHYSX
    WriteLock lock(Physics._rws);
    if(Physx.world && ValidActors(a0, a1))
@@ -436,54 +442,45 @@ static void CreateDistance(Joint &joint, Actor &a0, Actor *a1, C Vec local_ancho
 /******************************************************************************/
 Joint& Joint::createHinge(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, Bool collision)
 {
-   del();
    Matrix m0            =      a0. matrix(),
           m1            =(a1 ? a1->matrix() : MatrixIdentity);
    Vec    normal        =PerpN(axis),
           local_anchor[]={Vec().fromDivNormalized(anchor, m0      ), Vec().fromDivNormalized(anchor, m1      )},
           local_axis  []={Vec().fromDivNormalized(axis  , m0.orn()), Vec().fromDivNormalized(axis  , m1.orn())},
           local_normal[]={Vec().fromDivNormalized(normal, m0.orn()), Vec().fromDivNormalized(normal, m1.orn())};
-   CreateHinge(T, a0, a1, local_anchor, local_axis, local_normal, null, collision);
-   return T;
+   return createHinge(a0, a1, local_anchor, local_axis, local_normal, null, collision);
 }
 Joint& Joint::createHinge(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, Flt min_angle, Flt max_angle, Bool collision)
 {
-   del();
    Matrix m0            =      a0. matrix(),
           m1            =(a1 ? a1->matrix() : MatrixIdentity);
    Vec    normal        =PerpN(axis),
           local_anchor[]={Vec().fromDivNormalized(anchor, m0      ), Vec().fromDivNormalized(anchor, m1      )},
           local_axis  []={Vec().fromDivNormalized(axis  , m0.orn()), Vec().fromDivNormalized(axis  , m1.orn())},
           local_normal[]={Vec().fromDivNormalized(normal, m0.orn()), Vec().fromDivNormalized(normal, m1.orn())};
-   CreateHinge(T, a0, a1, local_anchor, local_axis, local_normal, &Vec2(min_angle, max_angle), collision);
-   return T;
+   return createHinge(a0, a1, local_anchor, local_axis, local_normal, &Vec2(min_angle, max_angle), collision);
 }
 Joint& Joint::createSpherical(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, C Flt *twist, C Flt *swing, Bool collision)
 {
-   del();
    Matrix m0            =      a0. matrix(),
           m1            =(a1 ? a1->matrix() : MatrixIdentity);
    Vec    normal        =PerpN(axis),
           local_anchor[]={Vec().fromDivNormalized(anchor, m0      ), Vec().fromDivNormalized(anchor, m1      )},
           local_axis  []={Vec().fromDivNormalized(axis  , m0.orn()), Vec().fromDivNormalized(axis  , m1.orn())},
           local_normal[]={Vec().fromDivNormalized(normal, m0.orn()), Vec().fromDivNormalized(normal, m1.orn())};
-   CreateSpherical(T, a0, a1, local_anchor, local_axis, local_normal, twist, swing, swing, collision);
-   return T;
+   return createSpherical(a0, a1, local_anchor, local_axis, local_normal, twist, swing, swing, collision);
 }
 Joint& Joint::createSpherical(Actor &a0, Actor *a1, C Vec &anchor, C Vec &axis, C Vec &perp, C Flt *twist, C Flt *swing_y, C Flt *swing_z, Bool collision)
 {
-   del();
    Matrix m0            =      a0. matrix(),
           m1            =(a1 ? a1->matrix() : MatrixIdentity);
    Vec    local_anchor[]={Vec().fromDivNormalized(anchor, m0      ), Vec().fromDivNormalized(anchor, m1      )},
           local_axis  []={Vec().fromDivNormalized(axis  , m0.orn()), Vec().fromDivNormalized(axis  , m1.orn())},
           local_normal[]={Vec().fromDivNormalized(perp  , m0.orn()), Vec().fromDivNormalized(perp  , m1.orn())};
-   CreateSpherical(T, a0, a1, local_anchor, local_axis, local_normal, twist, swing_y, swing_z, collision);
-   return T;
+   return createSpherical(a0, a1, local_anchor, local_axis, local_normal, twist, swing_y, swing_z, collision);
 }
 Joint& Joint::createSliding(Actor &a0, Actor *a1, C Vec &anchor, C Vec &dir, Flt min, Flt max, Bool collision)
 {
-   del();
    Matrix m0            =      a0. matrix(),
           m1            =(a1 ? a1->matrix() : MatrixIdentity);
    Vec    normal        =PerpN(dir),
@@ -495,44 +492,8 @@ Joint& Joint::createSliding(Actor &a0, Actor *a1, C Vec &anchor, C Vec &dir, Flt
 }
 Joint& Joint::createDist(Actor &a0, Actor *a1, C Vec &anchor0, C Vec &anchor1, Flt min, Flt max, C Spring *spring, Bool collision)
 {
-   del();
    Vec local_anchor[]={anchor0, anchor1};
    CreateDistance(T, a0, a1, local_anchor, min, max, spring, collision);
-   return T;
-}
-Joint& Joint::createBodyHinge(Actor &bone, Actor &parent, C Vec &anchor, C Vec &axis, Flt min_angle, Flt max_angle)
-{
-   del();
-   Matrix m0            =bone  .matrix(),
-          m1            =parent.matrix();
-   Vec    normal        =PerpN(axis),
-          local_anchor[]={Vec().fromDivNormalized(anchor, m0      ), Vec().fromDivNormalized(anchor, m1      )},
-          local_axis  []={Vec().fromDivNormalized(axis  , m0.orn()), Vec().fromDivNormalized(axis  , m1.orn())},
-          local_normal[]={Vec().fromDivNormalized(normal, m0.orn()), Vec().fromDivNormalized(normal, m1.orn())};
-   CreateHinge(T, bone, &parent, local_anchor, local_axis, local_normal, &Vec2(min_angle, max_angle), false);
-   return T;
-}
-Joint& Joint::createBodySpherical(Actor &bone, Actor &parent, C Vec &anchor, C Vec &axis, Flt twist, Flt swing)
-{
-   del();
-   Matrix m0            =bone  .matrix(),
-          m1            =parent.matrix();
-   Vec    normal        =PerpN(axis),
-          local_anchor[]={Vec().fromDivNormalized(anchor, m0      ), Vec().fromDivNormalized(anchor, m1      )},
-          local_axis  []={Vec().fromDivNormalized(axis  , m0.orn()), Vec().fromDivNormalized(axis  , m1.orn())},
-          local_normal[]={Vec().fromDivNormalized(normal, m0.orn()), Vec().fromDivNormalized(normal, m1.orn())};
-   CreateSpherical(T, bone, &parent, local_anchor, local_axis, local_normal, &twist, &swing, &swing, false);
-   return T;
-}
-Joint& Joint::createBodySpherical(Actor &bone, Actor &parent, C Vec &anchor, C Vec &axis, C Vec &perp, Flt twist, Flt swing_y, Flt swing_z)
-{
-   del();
-   Matrix m0            =bone  .matrix(),
-          m1            =parent.matrix();
-   Vec    local_anchor[]={Vec().fromDivNormalized(anchor, m0      ), Vec().fromDivNormalized(anchor, m1      )},
-          local_axis  []={Vec().fromDivNormalized(axis  , m0.orn()), Vec().fromDivNormalized(axis  , m1.orn())},
-          local_normal[]={Vec().fromDivNormalized(perp  , m0.orn()), Vec().fromDivNormalized(perp  , m1.orn())};
-   CreateSpherical(T, bone, &parent, local_anchor, local_axis, local_normal, &twist, &swing_y, &swing_z, false);
    return T;
 }
 /******************************************************************************/
@@ -855,20 +816,20 @@ Bool Joint::save(File &f)C
          Bool   collision, use_spring;
       #if PHYSX
          PxDistanceJoint &distance=*_joint->is<PxDistanceJoint>();
-         anchor[0]    =Physx.vec(distance.getLocalPose(PxJointActorIndex::eACTOR0).p);
-         anchor[1]    =Physx.vec(distance.getLocalPose(PxJointActorIndex::eACTOR1).p);
-         collision    =FlagTest((UInt)distance.getConstraintFlags   (), PxConstraintFlag   ::eCOLLISION_ENABLED);
-         use_spring   =FlagTest((UInt)distance.getDistanceJointFlags(), PxDistanceJointFlag::eSPRING_ENABLED   );
-         min          =distance.getMinDistance();
-         max          =distance.getMaxDistance();
+         anchor[0] =Physx.vec(distance.getLocalPose(PxJointActorIndex::eACTOR0).p);
+         anchor[1] =Physx.vec(distance.getLocalPose(PxJointActorIndex::eACTOR1).p);
+         collision =FlagTest((UInt)distance.getConstraintFlags   (), PxConstraintFlag   ::eCOLLISION_ENABLED);
+         use_spring=FlagTest((UInt)distance.getDistanceJointFlags(), PxDistanceJointFlag::eSPRING_ENABLED   );
+         min       =distance.getMinDistance();
+         max       =distance.getMaxDistance();
       #else
          btDistanceConstraint *dist=CAST(btDistanceConstraint, _joint);
-         anchor[0]    =Bullet.vec(dist->getPivotInA()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyA()))anchor[0].divNormalized(rb->offset); 
-         anchor[1]    =Bullet.vec(dist->getPivotInB()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyA()))anchor[1].divNormalized(rb->offset); 
-         min          =dist->min_dist;
-         max          =dist->max_dist;
-         use_spring   =dist->use_spring;
-         collision=true; btRigidBody &rb=_joint->getRigidBodyA(); REP(rb.getNumConstraintRefs())if(rb.getConstraintRef(i)==_joint){collision=false; break;}
+         anchor[0] =Bullet.vec(dist->getPivotInA()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyA()))anchor[0].divNormalized(rb->offset); 
+         anchor[1] =Bullet.vec(dist->getPivotInB()); if(RigidBody *rb=CAST(RigidBody, &_joint->getRigidBodyA()))anchor[1].divNormalized(rb->offset); 
+         min       =dist->min_dist;
+         max       =dist->max_dist;
+         use_spring=dist->use_spring;
+         collision =true; btRigidBody &rb=_joint->getRigidBodyA(); REP(rb.getNumConstraintRefs())if(rb.getConstraintRef(i)==_joint){collision=false; break;}
 	   #endif
 	      f<<anchor<<min<<max<<collision<<use_spring;
 	      if(use_spring)
@@ -901,8 +862,6 @@ Bool Joint::save(File &f)C
 /******************************************************************************/
 Bool Joint::load(File &f, Actor &a0, Actor *a1)
 {
-   del();
-
    switch(f.decUIntV()) // version
    {
       case 0:
@@ -911,7 +870,7 @@ Bool Joint::load(File &f, Actor &a0, Actor *a1)
          switch(    type)
          {
             default         : goto error; // unknown joint type
-            case JOINT_NONE :                 break;
+            case JOINT_NONE : del();          break;
             case JOINT_FIXED: create(a0, a1); break;
 
             case JOINT_HINGE:
@@ -922,7 +881,7 @@ Bool Joint::load(File &f, Actor &a0, Actor *a1)
                f>>anchor>>axis>>normal>>collision>>limit_angle;
                if(limit_angle)f>>angle;
 
-               CreateHinge(T, a0, a1, anchor, axis, normal, limit_angle ? &angle : null, collision);
+               createHinge(a0, a1, anchor, axis, normal, limit_angle ? &angle : null, collision);
                hingeDriveEnabled(f.getBool()); hingeDriveFreeSpin(f.getBool()); hingeDriveVel(f.getFlt()); hingeDriveForceLimit(f.getFlt()); hingeDriveGearRatio(f.getFlt());
             }break;
 
@@ -936,7 +895,7 @@ Bool Joint::load(File &f, Actor &a0, Actor *a1)
                if(flag&JOINT_SPHERICAL_LIMIT_SWING_Y)f>>swing_y;
                if(flag&JOINT_SPHERICAL_LIMIT_SWING_Z)f>>swing_z;
 
-               CreateSpherical(T, a0, a1, anchor, axis, normal, FlagTest(flag, JOINT_SPHERICAL_LIMIT_TWIST) ? &twist : null, FlagTest(flag, JOINT_SPHERICAL_LIMIT_SWING_Y) ? &swing_y : null, FlagTest(flag, JOINT_SPHERICAL_LIMIT_SWING_Z) ? &swing_z : null, FlagTest(flag, JOINT_COLLISION));
+               createSpherical(a0, a1, anchor, axis, normal, FlagTest(flag, JOINT_SPHERICAL_LIMIT_TWIST) ? &twist : null, FlagTest(flag, JOINT_SPHERICAL_LIMIT_SWING_Y) ? &swing_y : null, FlagTest(flag, JOINT_SPHERICAL_LIMIT_SWING_Z) ? &swing_z : null, FlagTest(flag, JOINT_COLLISION));
             }break;
 
             case JOINT_SLIDER:
