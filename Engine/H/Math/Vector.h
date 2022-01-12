@@ -1743,6 +1743,16 @@ struct VecI2 // Vector 2D (integer)
    friend Vec2 operator* (C Vec2 &a, C VecI2 &b) {return Vec2(a.x*b.x, a.y*b.y);}
    friend Vec2 operator/ (C Vec2 &a, C VecI2 &b) {return Vec2(a.x/b.x, a.y/b.y);}
 
+   friend VecD2 operator+ (C VecI2 &a, C VecD2 &b) {return VecD2(a.x+b.x, a.y+b.y);}
+   friend VecD2 operator- (C VecI2 &a, C VecD2 &b) {return VecD2(a.x-b.x, a.y-b.y);}
+   friend VecD2 operator* (C VecI2 &a, C VecD2 &b) {return VecD2(a.x*b.x, a.y*b.y);}
+   friend VecD2 operator/ (C VecI2 &a, C VecD2 &b) {return VecD2(a.x/b.x, a.y/b.y);}
+
+   friend VecD2 operator+ (C VecD2 &a, C VecI2 &b) {return VecD2(a.x+b.x, a.y+b.y);}
+   friend VecD2 operator- (C VecD2 &a, C VecI2 &b) {return VecD2(a.x-b.x, a.y-b.y);}
+   friend VecD2 operator* (C VecD2 &a, C VecI2 &b) {return VecD2(a.x*b.x, a.y*b.y);}
+   friend VecD2 operator/ (C VecD2 &a, C VecI2 &b) {return VecD2(a.x/b.x, a.y/b.y);}
+
    friend VecI2 operator<< (C VecI2 &v,   Int    i) {return VecI2(v.x<<i, v.y<<i);}
    friend VecI2 operator>> (C VecI2 &v,   Int    i) {return VecI2(v.x>>i, v.y>>i);}
    friend VecI2 operator&  (C VecI2 &v, C RectI &r) {return VecI2(v)&=r;} // intersection
