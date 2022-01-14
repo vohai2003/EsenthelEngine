@@ -1231,6 +1231,12 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
             channel[TC_ROUGH]=1;
             channel[TC_METAL]=2;
          }else
+         if(Contains(base, "MRG", true, WHOLE_WORD_ALPHA))
+         {
+            channel[TC_METAL]=0;
+            channel[TC_ROUGH]=1;
+            channel[TC_GLOW ]=2;
+         }else
          if(Contains(base, "mask", false, WHOLE_WORD_ALPHA) && Contains(base, "unity")) // Unity HDRP Mask R=metal, G=AO, B=Detail mask, A=smoothness
          {
             channel[TC_METAL ]=0;
@@ -1277,7 +1283,11 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
                params.New().set("mode", "mulRGB");
                params.New().set("alpha", "0.5");
             }else
-            if(InRange(channel[TC_GLOW ], 4))params.New().set("mode", "addRGB");else
+            if(InRange(channel[TC_GLOW], 4))
+            {
+               if(multi_channel)params.New().set("channel", IndexChannel(channel[TC_GLOW]));
+               params.New().set("mode", "addRGB");
+            }else
             if(InRange(channel[TC_METAL], 4))
             {
                if(multi_channel && need_metal_channel)params.New().set("channel", IndexChannel(channel[TC_METAL]));
@@ -1322,6 +1332,10 @@ Property &mts=props.New().create("Tex Size Mobile", MemberDesc(DATA_INT).setFunc
                params.New().set("mode", "mulRGB");
             }else // check Metal
             if(multi_channel && InRange(channel[TC_METAL], 4) && need_metal_channel)params.New().set("channel", IndexChannel(channel[TC_METAL]));
+         }else
+         if(tex_type==TEX_GLOW)
+         {
+            if(multi_channel && InRange(channel[TC_GLOW], 4))params.New().set("channel", IndexChannel(channel[TC_GLOW]));
          }
       }
    }
