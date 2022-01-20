@@ -792,23 +792,11 @@ void LogShow(Bool thread_id, Bool date, Bool time, Bool cur_time) {LogThreadID=t
 /******************************************************************************/
 Int BitOn(UInt x)
 {
-#if WINDOWS
-   return __popcnt(x);
-#elif 1
-   return __builtin_popcount(x);
-#else
    Int on=0; for(; x; x>>=1)on+=x&1; return on;
-#endif
 }
 Int BitOn(ULong x)
 {
-#if WINDOWS
-   return __popcnt64(x);
-#elif 1
-   return __builtin_popcountll(x);
-#else
    Int on=0; for(; x; x>>=1)on+=x&1; return on;
-#endif
 }
 
 Int BitLo(UShort x)
