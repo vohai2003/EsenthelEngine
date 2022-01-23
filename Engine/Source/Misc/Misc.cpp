@@ -792,11 +792,17 @@ void LogShow(Bool thread_id, Bool date, Bool time, Bool cur_time) {LogThreadID=t
 /******************************************************************************/
 Int BitOn(UInt x)
 {
-   Int on=0; for(; x; x>>=1)on+=x&1; return on;
+   int on = 0;
+    for (; x != 0; x &= x - 1)
+        on++;
+    return on;
 }
 Int BitOn(ULong x)
 {
-   Int on=0; for(; x; x>>=1)on+=x&1; return on;
+   int on = 0;
+    for (; x != 0; x &= x - 1)
+        on++;
+    return on;
 }
 
 Int BitLo(UShort x)
